@@ -10,7 +10,7 @@
   --bg:#efe7d7;--panel:#f8f2e7;--panel2:#f3eadb;--text:#2f2923;
   --muted:#756a5e;--line:rgba(67,49,33,.14);--accent:#855638;
   --accent-soft:rgba(133,86,56,.11);--shadow:0 22px 70px rgba(59,42,25,.13);
-  --font-size:29px;--line-height:1.72;--glyph-scale:1;--stroke-width:0px;--ruby-size:.34em;--header:64px;--footer:64px;
+  --font-size:29px;--line-height:1.72;--glyph-scale:1;--stroke-width:0px;--ruby-size:.34em;--header:64px;--footer:64px;--reader-pad-y:15px;--py-grid-height:calc(100% - 30px);--reader-letter-spacing:.015em;
   --sutra-font:"TW-Kai-Web","BiauKai","DFKai-SB","Kaiti TC","STKaiti","KaiTi",serif;
 }
 *{box-sizing:border-box}
@@ -97,19 +97,19 @@ html.font-ready .reader-content{visibility:visible}
 }
 .reader-content{
   min-height:100%;font-family:var(--sutra-font);font-size:var(--font-size);line-height:var(--line-height);
-  letter-spacing:.015em;text-align:start;text-justify:auto;
+  letter-spacing:var(--reader-letter-spacing);text-align:start;text-justify:auto;
   font-variant-east-asian:traditional;font-weight:400;
 }
 .reader-content.vertical{
   writing-mode:vertical-rl;text-orientation:upright;height:100%;min-width:100%;
-  padding:32px 38px 32px 50px;direction:ltr;unicode-bidi:isolate;
+  padding:15px 38px 15px 50px;direction:ltr;unicode-bidi:isolate;
 }
 .chapter-heading{
   margin:0;color:var(--accent);font-weight:400;letter-spacing:.16em;
 }
-.vertical .chapter-heading{font-size:1em;margin-left:1.8em;padding-top:.4em}
+.vertical .chapter-heading{font-size:1em;margin-left:1.8em;padding-top:0}
 .reader-content p{margin:0}
-.vertical p{margin:0 0 0 1.05em;text-indent:2em}
+.vertical p{margin:0 0 0 1.05em;text-indent:0}
 .verse{color:color-mix(in srgb,var(--text) 92%,var(--accent));font-size:1em}
 .vertical .verse{margin:0 0 0 1.25em}
 .vertical .verse span{display:block;margin-left:.45em;word-spacing:.45em}
@@ -285,12 +285,12 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   text-orientation:mixed!important;
   display:flex!important;
   flex-direction:row-reverse;
-  align-items:flex-start;
+  align-items:center;
   gap:var(--py-column-gap);
   width:max-content!important;
   min-width:100%!important;
   height:100%!important;
-  padding:26px 30px 26px 38px!important;
+  padding:15px 30px 15px 38px!important;
   direction:ltr!important;
   overflow:visible;
 }
@@ -300,7 +300,11 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   flex-direction:column;
   align-items:center;
   width:var(--py-column-width);
-  height:100%;
+  height:var(--py-grid-height);
+  min-height:0;
+  max-height:var(--py-grid-height);
+  position:relative;
+  overflow:visible;
 }
 .pinyin-grid .py-heading-column{
   width:1.25em;
@@ -310,6 +314,10 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .pinyin-grid .py-cell{
   flex:0 0 var(--py-cell-height);
   width:100%;
+  height:var(--py-cell-height);
+  min-height:0;
+  max-height:var(--py-cell-height);
+  box-sizing:border-box;
   display:grid;
   grid-template-columns:1em var(--py-label-width);
   column-gap:var(--py-label-gap);
@@ -334,6 +342,8 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   color:var(--text);
   writing-mode:horizontal-tb!important;
   text-orientation:upright!important;
+  position:relative;
+  overflow:visible;
 }
 .pinyin-grid .py-char>.glyph{
   display:inline-block;
@@ -416,6 +426,122 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .pinyin-grid .py-heading-column{width:var(--py-column-width)}
 .pinyin-grid .py-heading-column .py-cell{grid-template-columns:1em var(--py-label-width)}
 
+
+.reader-content.plain-grid{
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  display:flex!important;
+  flex-direction:row-reverse;
+  align-items:center;
+  gap:var(--plain-column-gap);
+  width:max-content!important;
+  min-width:100%!important;
+  height:100%!important;
+  padding:15px 38px 15px 50px!important;
+  direction:ltr!important;
+  overflow:visible;
+  letter-spacing:0!important;
+}
+.plain-grid .plain-column{
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:1em;
+  height:var(--py-grid-height);
+  min-height:0;
+  max-height:var(--py-grid-height);
+  position:relative;
+  overflow:visible;
+}
+.plain-grid .plain-heading-column{
+  margin-left:1.25em;
+  color:var(--accent);
+}
+.plain-grid .plain-cell{
+  flex:0 0 var(--py-cell-height);
+  width:1em;
+  height:var(--py-cell-height);
+  min-height:0;
+  max-height:var(--py-cell-height);
+  box-sizing:border-box;
+  display:grid;
+  place-items:center;
+  position:relative;
+  line-height:1!important;
+}
+.plain-grid .plain-cell.plain-blank{visibility:hidden}
+.plain-grid .plain-char{
+  display:grid;
+  place-items:center;
+  width:1em;
+  height:1em;
+  line-height:1!important;
+  font-family:var(--sutra-font)!important;
+  font-size:var(--font-size)!important;
+  color:var(--text);
+  position:relative;
+  overflow:visible;
+}
+.plain-grid .plain-char>.glyph{
+  display:inline-block;
+  transform:scaleX(var(--glyph-scale));
+  transform-origin:center;
+  -webkit-text-stroke:var(--stroke-width) currentColor;
+  paint-order:stroke fill;
+}
+.plain-grid .plain-heading-column .plain-char{color:var(--accent)}
+.plain-grid .plain-cell.vow .plain-char{
+  font-size:calc(var(--font-size) * .64)!important;
+  color:var(--muted);
+}
+.plain-grid .plain-cell.highlighted{
+  background:rgba(214,174,79,.35);
+  border-radius:.18em;
+}
+
+/* 禁止句号等出现在新列顶端：列尾标点改为悬挂标点，不额外占一行。 */
+.py-char .hanging-punct,
+.plain-char .hanging-punct{
+  position:absolute;
+  z-index:3;
+  pointer-events:none;
+  display:block;
+  color:currentColor;
+  -webkit-text-stroke:0 transparent!important;
+}
+.py-char .hanging-punct-corner,
+.plain-char .hanging-punct-corner{
+  right:.04em;
+  bottom:-.20em;
+  width:.20em;
+  height:.20em;
+  box-sizing:border-box;
+  border:.045em solid currentColor;
+  border-radius:50%;
+}
+.py-char .hanging-punct-dot,
+.plain-char .hanging-punct-dot{
+  right:.06em;
+  bottom:-.17em;
+  width:.16em;
+  height:.16em;
+  border-radius:50%;
+  background:currentColor;
+}
+.py-char .hanging-punct-text,
+.plain-char .hanging-punct-text{
+  right:-.01em;
+  bottom:-.30em;
+  width:.62em;
+  height:.62em;
+  font-family:var(--sutra-font)!important;
+  font-size:.62em!important;
+  line-height:1!important;
+  display:grid;
+  place-items:center;
+}
+
 .drawer-mask{
   position:fixed;z-index:80;inset:0;background:rgba(0,0,0,.36);opacity:0;visibility:hidden;
   transition:.2s ease;
@@ -468,20 +594,26 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .mobile-hide{display:inline-flex}
 @media(max-width:760px){
-  :root{--header:50px;--footer:52px}
-  .topbar{padding-left:5px;padding-right:5px;gap:4px}
+  :root{--header:47px;--footer:52px}
+  .topbar{padding-left:4px;padding-right:4px;gap:3px}
   .reader-stage{padding:0}
   .reader-card{border:0;border-radius:0;box-shadow:none}
   .seal,.book-title,.mobile-hide{display:none}
-  .chapter-mini{font-size:12px;color:var(--text);margin:0;font-weight:600}
-  .toolbar{gap:3px}
-  button{height:35px;min-width:35px;padding:0 8px;border-radius:9px}
-  .icon-btn{width:35px}
-  .reader-content.vertical{
-    padding:20px 18px 22px 30px;
-    letter-spacing:.01em;
+  .brand{min-width:0;flex:1 1 auto;overflow:hidden}
+  .brand-text{width:100%;min-width:0}
+  .chapter-mini{
+    display:block;width:100%;margin:0;color:var(--text);
+    font-size:11px;line-height:1.1;font-weight:600;
+    letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .reader-content.pinyin-grid{padding:18px 12px 20px 18px!important}
+  .toolbar{gap:2px;flex:0 0 auto}
+  button{height:31px;min-width:31px;padding:0 5px;border-radius:8px}
+  .icon-btn{width:31px}
+  .reader-content.vertical{
+    padding:15px 18px 15px 30px;
+  }
+  .reader-content.pinyin-grid{padding:15px 12px 15px 18px!important}
+  .reader-content.plain-grid{padding:15px 18px 15px 30px!important}
 
   .toc{grid-template-columns:1fr}
   .progress-label{min-width:72px;font-size:11px}
@@ -491,13 +623,15 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 }
 @media(max-width:440px){
   :root{}
-  .brand{min-width:52px}
-  .chapter-mini{font-size:11px}
+  .brand{min-width:0}
+  .chapter-mini{font-size:10.5px}
   .toolbar .font-label{font-size:0}
-  .toolbar .font-label::after{content:"字";font-size:14px}
-  .topbar button{height:34px;min-width:34px;padding:0 7px}
-  .topbar .icon-btn{width:34px}
-  .reader-content.vertical{padding:18px 14px 20px 25px}
+  .toolbar .font-label::after{content:"字";font-size:12px}
+  .topbar button{height:29px;min-width:29px;padding:0 4px;font-size:13px}
+  .topbar .icon-btn{width:29px}
+  #menuBtn{width:30px;min-width:30px}
+  .reader-content.vertical{padding:15px 14px 15px 25px}
+  .reader-content.plain-grid{padding:15px 14px 15px 25px!important}
   .footer>button{height:37px;min-width:66px;font-size:12px;padding:0 7px}
   .progress-track{display:none}
   .progress-label{min-width:68px}
@@ -628,7 +762,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      PDF逐字校訂版 V22。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
+      PDF逐字校訂版 V30。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
     </section>
   </aside>
 </div>
@@ -649,7 +783,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v25";
+  const STORAGE_KEY = "wuliangshou-reader-v30";
   const defaults = {
     chapter:0,fontSize:28,lineHeight:1.72,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
@@ -694,6 +828,15 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   const isPunctuationChar = ch =>
     isCornerPunctuation(ch) || isCommaPunctuation(ch) ||
     isCenterPunctuation(ch) || isBracketPunctuation(ch);
+  const isNoStartPunctuation = ch => /[。．，、；：！？]/.test(ch);
+
+  function hangingPunctuationHTML(value="") {
+    return Array.from(value).map(ch => {
+      if (ch === "。") return `<span class="hanging-punct hanging-punct-corner" data-char="。" aria-hidden="true"></span>`;
+      if (ch === "．") return `<span class="hanging-punct hanging-punct-dot" data-char="．" aria-hidden="true"></span>`;
+      return `<span class="hanging-punct hanging-punct-text" data-char="${escapeHTML(ch)}" aria-hidden="true">${escapeHTML(ch)}</span>`;
+    }).join("");
+  }
 
   function punctuationHTML(ch) {
     let kind = "punct-center";
@@ -891,6 +1034,8 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     root.style.setProperty("--py-label-gap", labelGap.toFixed(2) + "px");
     root.style.setProperty("--py-column-width", (state.fontSize + labelWidth + labelGap).toFixed(2) + "px");
     root.style.setProperty("--py-column-gap", columnGap.toFixed(2) + "px");
+    const plainColumnGap = Math.max(4, state.fontSize * Math.max(.18, state.lineHeight - 1));
+    root.style.setProperty("--plain-column-gap", plainColumnGap.toFixed(2) + "px");
     root.style.setProperty("--py-label-y", Math.max(1, state.fontSize * .035).toFixed(2) + "px");
 
     body.classList.remove("dark","paper");
@@ -901,17 +1046,12 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     );
 
     const pinyinLayoutActive = usePinyinLayout();
-    content.classList.toggle("vertical", !pinyinLayoutActive);
+    content.classList.remove("vertical","horizontal","pinyin-on");
     content.classList.toggle("pinyin-grid", pinyinLayoutActive);
-    content.classList.remove("horizontal","pinyin-on");
-    if (pinyinLayoutActive) {
-      content.style.transform = "none";
-      content.style.webkitTextStroke = "0 transparent";
-    } else {
-      content.style.transformOrigin = "right top";
-      content.style.transform = `scaleX(${state.glyphScale})`;
-      content.style.webkitTextStroke = `${state.strokeWidth.toFixed(1)}px currentColor`;
-    }
+    content.classList.toggle("plain-grid", !pinyinLayoutActive);
+    syncVerticalBalance();
+    content.style.transform = "none";
+    content.style.webkitTextStroke = "0 transparent";
     syncSutraMetrics();
     updateReadingControls();
   }
@@ -944,15 +1084,37 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
 
-  function pinyinCellHeight() {
+  function preferredRowPitch() {
     const tracking = window.matchMedia("(max-width:760px)").matches ? 0.01 : 0.015;
     return state.fontSize * (1 + tracking);
   }
 
+  function pinyinCellHeight() {
+    return verticalBalanceMetrics(true).rowPitch;
+  }
+
+  function verticalBalanceMetrics(pinyinLayout=usePinyinLayout()) {
+    const viewportHeight = Math.max(1, viewport.clientHeight || 1);
+    const edgePadding = 15;
+    const preferredPitch = preferredRowPitch();
+    const gridHeight = Math.max(1, viewportHeight - edgePadding * 2);
+    const rows = Math.max(1, Math.floor(gridHeight / preferredPitch));
+    const rowPitch = gridHeight / rows;
+    return {rows,rowPitch,preferredPitch,gridHeight,edgePadding,pinyinLayout};
+  }
+
+  function syncVerticalBalance() {
+    const metrics = verticalBalanceMetrics();
+    const letterSpacing = Math.max(0, metrics.rowPitch - state.fontSize);
+    root.style.setProperty("--reader-pad-y", "15px");
+    root.style.setProperty("--reader-letter-spacing", letterSpacing.toFixed(3) + "px");
+    root.style.setProperty("--py-grid-height", metrics.gridHeight.toFixed(3) + "px");
+    root.style.setProperty("--py-cell-height", metrics.rowPitch.toFixed(3) + "px");
+    return metrics;
+  }
+
   function pinyinRowsForViewport() {
-    const availableHeight = Math.max(260, viewport.clientHeight - 52);
-    const cellHeight = pinyinCellHeight();
-    return Math.max(5, Math.floor(availableHeight / cellHeight));
+    return verticalBalanceMetrics(true).rows;
   }
 
   function vowMaskForText(value) {
@@ -1030,17 +1192,73 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       entry.highlighted ? "highlighted" : ""
     ].filter(Boolean).join(" ");
     const glyph = glyphHTML(entry.ch,"",false);
+    const trailing = hangingPunctuationHTML(entry.trailingPunct || "");
     const metrics = entry.pg && isCJKChar(entry.ch) ? pinyinGlyphMetrics(entry.pg) : null;
     const label = metrics
       ? `<span class="py-label"><svg class="py-svg" aria-hidden="true" viewBox="0 0 ${metrics.width} ${metrics.height}" preserveAspectRatio="xMinYMid meet" style="--pg-w:${metrics.widthFactor};--pg-h:${metrics.heightFactor}"><use href="#pg-${metrics.code}" width="${metrics.width}" height="${metrics.height}"></use></svg></span>`
       : (entry.pt && isCJKChar(entry.ch)
         ? `<span class="py-label"><span class="py-text">${escapeHTML(entry.pt)}</span></span>`
         : "");
-    return `<div class="${classes}"><span class="py-char">${glyph}</span>${label}</div>`;
+    return `<div class="${classes}"><span class="py-char">${glyph}${trailing}</span>${label}</div>`;
   }
 
   function renderPinyinColumn(entries, extraClass="") {
     return `<div class="py-column ${extraClass}">${entries.map(renderPinyinCell).join("")}</div>`;
+  }
+
+  function packGridColumns(entries, rows) {
+    const columns = [];
+    let index = 0;
+
+    while (index < entries.length) {
+      while (index < entries.length && entries[index].blank) index++;
+      if (index >= entries.length) break;
+
+      const column = [];
+      while (column.length < rows && index < entries.length) {
+        const entry = entries[index];
+        if (!entry.blank) {
+          column.push(entry);
+          index++;
+          continue;
+        }
+
+        let runEnd = index;
+        while (runEnd < entries.length && entries[runEnd].blank) runEnd++;
+        if (runEnd >= entries.length) {
+          index = runEnd;
+          break;
+        }
+
+        const blankCount = runEnd - index;
+        const available = rows - column.length;
+        const keep = Math.min(blankCount, Math.max(0, available - 1));
+        for (let i=0; i<keep; i++) column.push({blank:true});
+        index = runEnd;
+      }
+
+      while (column.length && column[column.length - 1].blank) column.pop();
+      if (column.length) columns.push(column);
+    }
+
+    /* 行首禁则：句号、逗号等不得独立出现在下一列顶部。 */
+    for (let columnIndex=1; columnIndex<columns.length; columnIndex++) {
+      const column = columns[columnIndex];
+      const previous = columns[columnIndex - 1];
+      while (column.length && !column[0].blank && isNoStartPunctuation(column[0].ch)) {
+        const punctuation = column.shift();
+        let hostIndex = previous.length - 1;
+        while (hostIndex >= 0 && (previous[hostIndex].blank || isNoStartPunctuation(previous[hostIndex].ch))) hostIndex--;
+        if (hostIndex < 0) {
+          column.unshift(punctuation);
+          break;
+        }
+        const host = previous[hostIndex];
+        host.trailingPunct = `${host.trailingPunct || ""}${punctuation.ch}`;
+      }
+    }
+
+    return columns.filter(column => column.length);
   }
 
   function renderPinyinLayout(chapter, highlightTerm="") {
@@ -1080,9 +1298,57 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       }
     });
 
-    const columns = [renderPinyinColumn(titleEntries, "py-heading-column")];
-    for (let start=0; start<bodyEntries.length; start+=rows) {
-      columns.push(renderPinyinColumn(bodyEntries.slice(start,start+rows)));
+    const columns = packGridColumns(titleEntries, rows)
+      .map(columnEntries => renderPinyinColumn(columnEntries, "py-heading-column"));
+    for (const columnEntries of packGridColumns(bodyEntries, rows)) {
+      columns.push(renderPinyinColumn(columnEntries));
+    }
+    return columns.join("");
+  }
+
+
+  function renderPlainCell(entry) {
+    if (entry.blank) return `<div class="plain-cell plain-blank"></div>`;
+    const classes = [
+      "plain-cell",
+      entry.vow ? "vow" : "",
+      entry.highlighted ? "highlighted" : ""
+    ].filter(Boolean).join(" ");
+    const trailing = hangingPunctuationHTML(entry.trailingPunct || "");
+    return `<div class="${classes}"><span class="plain-char">${glyphHTML(entry.ch,"",false)}${trailing}</span></div>`;
+  }
+
+  function renderPlainColumn(entries, extraClass="") {
+    return `<div class="plain-column ${extraClass}">${entries.map(renderPlainCell).join("")}</div>`;
+  }
+
+  function renderPlainLayout(chapter, highlightTerm="") {
+    const rows = pinyinRowsForViewport();
+    const titleEntries = [];
+    appendPinyinEntries(titleEntries, chapter.title, "", highlightTerm, {
+      heading:true
+    });
+
+    const bodyEntries = [];
+    chapter.blocks.forEach((block, blockIndex) => {
+      if (block.type === "verse") {
+        block.lines.forEach((line, lineIndex) => {
+          appendPinyinEntries(bodyEntries, line, "", highlightTerm);
+          if (lineIndex < block.lines.length - 1) blankPinyinEntries(bodyEntries, 1);
+        });
+      } else {
+        blankPinyinEntries(bodyEntries, 2);
+        appendPinyinEntries(bodyEntries, block.text, "", highlightTerm, {
+          vowLabels:chapter.sutraNo === 6
+        });
+        if (blockIndex < chapter.blocks.length - 1) blankPinyinEntries(bodyEntries, 1);
+      }
+    });
+
+    const columns = packGridColumns(titleEntries, rows)
+      .map(columnEntries => renderPlainColumn(columnEntries, "plain-heading-column"));
+    for (const columnEntries of packGridColumns(bodyEntries, rows)) {
+      columns.push(renderPlainColumn(columnEntries));
     }
     return columns.join("");
   }
@@ -1095,19 +1361,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     if (usePinyinLayout(chapter)) {
       content.innerHTML = renderPinyinLayout(chapter, highlightTerm);
     } else {
-      let output = `<h1 class="chapter-heading">${renderRichText(chapter.title,"",{highlightTerm})}</h1>`;
-      for (const block of chapter.blocks) {
-        if (block.type === "verse") {
-          output += `<div class="verse">${block.lines.map((line,index) =>
-            `<span>${renderRichText(line,block.pgLines?.[index] || "",{highlightTerm})}</span>`
-          ).join("")}</div>`;
-        } else {
-          output += `<p>${renderRichText(block.text,block.pg || "",{
-            highlightTerm,vowLabels:chapter.sutraNo === 6
-          })}</p>`;
-        }
-      }
-      content.innerHTML = output;
+      content.innerHTML = renderPlainLayout(chapter, highlightTerm);
     }
 
     applySettings();
@@ -1205,11 +1459,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const progress = getReadingProgress();
     state.fontSize = Math.max(16,Math.min(52,state.fontSize+delta));
     save();
-    if (state.pinyinMode) {
-      renderChapter({restore:false,highlightTerm:activeHighlight});
-    } else {
-      applySettings();
-    }
+    renderChapter({restore:false,highlightTerm:activeHighlight});
     requestAnimationFrame(() => setReadingProgress(progress));
     notify(`字體 ${state.fontSize}px`);
   }
@@ -1218,11 +1468,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const progress = getReadingProgress();
     state.lineHeight = Math.max(1.45,Math.min(2.8,Number((state.lineHeight+delta).toFixed(2))));
     save();
-    if (state.pinyinMode) {
-      renderChapter({restore:false,highlightTerm:activeHighlight});
-    } else {
-      applySettings();
-    }
+    renderChapter({restore:false,highlightTerm:activeHighlight});
     requestAnimationFrame(() => setReadingProgress(progress));
     notify(`行距 ${state.lineHeight.toFixed(2)}`);
   }
@@ -1403,16 +1649,43 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 
   viewport.addEventListener("scroll",updateProgress,{passive:true});
   let resizeTimer = null;
-  window.addEventListener("resize",() => {
-    const progress = Number(state.positions[state.chapter]||0);
+  let lastViewportWidth = 0;
+  let lastViewportHeight = 0;
+  let layoutRefreshRunning = false;
+
+  function refreshLayoutForViewport() {
+    if (layoutRefreshRunning) return;
+    const width = Math.round(viewport.clientWidth || 0);
+    const height = Math.round(viewport.clientHeight || 0);
+    if (!width || !height) return;
+    if (width === lastViewportWidth && height === lastViewportHeight) return;
+
+    lastViewportWidth = width;
+    lastViewportHeight = height;
+    const progress = getReadingProgress();
+    layoutRefreshRunning = true;
+    renderChapter({restore:false,highlightTerm:activeHighlight});
+    requestAnimationFrame(() => {
+      setReadingProgress(progress);
+      updateProgress();
+      layoutRefreshRunning = false;
+    });
+  }
+
+  function scheduleViewportRefresh(delay=80) {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      if (usePinyinLayout()) {
-        renderChapter({restore:false,highlightTerm:activeHighlight});
-      }
-      requestAnimationFrame(() => setReadingProgress(progress));
-    },120);
-  });
+    resizeTimer = setTimeout(refreshLayoutForViewport, delay);
+  }
+
+  window.addEventListener("resize",() => scheduleViewportRefresh(80),{passive:true});
+  window.addEventListener("orientationchange",() => scheduleViewportRefresh(120),{passive:true});
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize",() => scheduleViewportRefresh(50),{passive:true});
+  }
+  if (window.ResizeObserver) {
+    const viewportObserver = new ResizeObserver(() => scheduleViewportRefresh(40));
+    viewportObserver.observe(viewport);
+  }
 
   document.addEventListener("keydown",event => {
     if(event.key === "Escape"){closeDrawer();closeSearch();}
@@ -1439,6 +1712,9 @@ applySettings();
   const startReader = () => {
     document.documentElement.classList.add("font-ready");
     renderChapter({restore:false});
+    lastViewportWidth = Math.round(viewport.clientWidth || 0);
+    lastViewportHeight = Math.round(viewport.clientHeight || 0);
+    requestAnimationFrame(() => scheduleViewportRefresh(0));
   };
 
   if (document.fonts && document.fonts.load) {
