@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#efe7d7">
 <title>佛說大乘無量壽莊嚴清淨平等覺經</title>
+<link rel="preload" href="./TW-Kai.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 :root{
   --bg:#efe7d7;--panel:#f8f2e7;--panel2:#f3eadb;--text:#2f2923;
@@ -14,7 +15,13 @@
   --sutra-font:"TW-Kai-Web","BiauKai","DFKai-SB","Kaiti TC","STKaiti","KaiTi",serif;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;touch-action:pan-x pan-y;}
+html,body{
+  height:100%;
+  margin:0;
+  touch-action:pan-x pan-y;
+  -webkit-text-size-adjust:none;
+  text-size-adjust:none;
+}
 body{
   color:var(--text);background:
   radial-gradient(circle at 10% 5%,rgba(133,86,56,.07),transparent 25%),
@@ -102,20 +109,23 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
   margin-inline:.22em;
 }
 
-/* 全經只使用一個正文基準字號；四十八願小標題除外 */
-.reader-content,
+/* 全經統一正文尺寸；只有四十八願的小標題按固定比例縮小 */
+
+.reader-content > *,
 .reader-content p,
 .reader-content .verse,
-.reader-content .verse span,
-.reader-content .chapter-heading{
-  font-size:var(--font-size) !important;
-  font-family:var(--sutra-font) !important;
+.reader-content .verse > span,
+.reader-content .chapter-heading,
+.reader-content mark{
+  -webkit-text-size-adjust:none !important;
+  text-size-adjust:none !important;
+  font-size:inherit !important;
+  font-family:inherit !important;
 }
 .reader-content .vow-label{
   font-size:calc(var(--font-size) * .64) !important;
   font-family:var(--sutra-font) !important;
 }
-
 mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0 .04em}
 .loading{height:100%;display:grid;place-items:center;color:var(--muted)}
 .footer{
@@ -222,10 +232,10 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 <style id="local-sutra-font">
 @font-face {
   font-family: "TW-Kai-Web";
-  src: url("./TW-Kai.ttf") format("truetype");
+  src: url("./TW-Kai.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: block;
 }
 </style>
 </head>
@@ -324,7 +334,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v2";
+  const STORAGE_KEY = "wuliangshou-reader-v3";
   const defaults = {
     chapter:0,fontSize:28,lineHeight:2.02,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
@@ -423,6 +433,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     });
   }
 
+  function updateTOCState() {
+    toc.querySelectorAll("button[data-index]").forEach(button => {
+      const index = Number(button.dataset.index);
+      button.classList.toggle("current", index === state.chapter);
+      button.classList.toggle("bookmarked", state.bookmarks.includes(index));
+    });
+  }
+
   function renderChapter({restore=true,highlightTerm=""}={}) {
     const chapter = chapters[state.chapter];
     $("chapterMini").textContent = chapter.title;
@@ -442,7 +460,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     applySettings();
     updateNavigation();
     updateBookmark();
-    renderTOC($("tocFilter").value);
+    updateTOCState();
     activeHighlight = highlightTerm;
 
     requestAnimationFrame(() => {
@@ -619,13 +637,37 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const index = state.bookmarks.indexOf(state.chapter);
     if(index >= 0) state.bookmarks.splice(index,1);
     else state.bookmarks.push(state.chapter);
-    save(); updateBookmark(); renderTOC($("tocFilter").value);
+    save(); updateBookmark(); updateTOCState();
     notify(index >= 0 ? "已取消書籤" : "已加入書籤");
   });
 
-  $("prevBtn").addEventListener("click",()=>setChapter(state.chapter-1));
-  $("nextBtn").addEventListener("click",() => {
-    const target = Math.min(chapters.length - 1, state.chapter + 1);
+  function bindFastNav(buttonId, action) {
+    const button = $(buttonId);
+    let touched = false;
+
+    button.addEventListener("touchstart", event => {
+      event.preventDefault();
+      touched = true;
+      action();
+    }, {passive:false});
+
+    button.addEventListener("click", event => {
+      if (touched) {
+        touched = false;
+        event.preventDefault();
+        return;
+      }
+      action();
+    });
+  }
+
+  bindFastNav("prevBtn", () => {
+    if (state.chapter > 0) setChapter(state.chapter - 1);
+  });
+
+  bindFastNav("nextBtn", () => {
+    if (state.chapter >= chapters.length - 1) return;
+    const target = state.chapter + 1;
     state.positions[target] = 0;
     setChapter(target,{restore:false});
   });
@@ -667,19 +709,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   document.addEventListener("touchmove", event => {
     if (event.touches && event.touches.length > 1) event.preventDefault();
   }, {passive:false});
-
-  let lastTouchEnd = 0;
-  document.addEventListener("touchend", event => {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) event.preventDefault();
-    lastTouchEnd = now;
-  }, {passive:false});
-
-  applySettings();
+applySettings();
   renderTOC();
 
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => renderChapter());
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('29px "TW-Kai-Web"').finally(() => {
+      document.documentElement.classList.add("sutra-font-ready");
+      renderChapter();
+    });
   } else {
     renderChapter();
   }
