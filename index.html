@@ -10,7 +10,7 @@
   --bg:#efe7d7;--panel:#f8f2e7;--panel2:#f3eadb;--text:#2f2923;
   --muted:#756a5e;--line:rgba(67,49,33,.14);--accent:#855638;
   --accent-soft:rgba(133,86,56,.11);--shadow:0 22px 70px rgba(59,42,25,.13);
-  --font-size:29px;--line-height:2.02;--glyph-scale:1;--stroke-width:0px;--ruby-size:.34em;--header:64px;--footer:64px;
+  --font-size:29px;--line-height:1.72;--glyph-scale:1;--stroke-width:0px;--ruby-size:.34em;--header:64px;--footer:64px;
   --sutra-font:"TW-Kai-Web","BiauKai","DFKai-SB","Kaiti TC","STKaiti","KaiTi",serif;
 }
 *{box-sizing:border-box}
@@ -97,7 +97,7 @@ html.font-ready .reader-content{visibility:visible}
 }
 .reader-content{
   min-height:100%;font-family:var(--sutra-font);font-size:var(--font-size);line-height:var(--line-height);
-  letter-spacing:.075em;text-align:justify;text-justify:inter-ideograph;
+  letter-spacing:.03em;text-align:start;text-justify:auto;
   font-variant-east-asian:traditional;font-weight:400;
 }
 .reader-content.vertical{
@@ -109,10 +109,10 @@ html.font-ready .reader-content{visibility:visible}
 }
 .vertical .chapter-heading{font-size:1em;margin-left:1.8em;padding-top:.4em}
 .reader-content p{margin:0}
-.vertical p{margin:0 0 0 1.45em;text-indent:2em}
+.vertical p{margin:0 0 0 1.05em;text-indent:2em}
 .verse{color:color-mix(in srgb,var(--text) 92%,var(--accent));font-size:1em}
-.vertical .verse{margin:0 0 0 1.7em}
-.vertical .verse span{display:block;margin-left:.7em;word-spacing:.8em}
+.vertical .verse{margin:0 0 0 1.25em}
+.vertical .verse span{display:block;margin-left:.45em;word-spacing:.45em}
 
 .vow-label{
   font-family:var(--sutra-font);
@@ -338,7 +338,10 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   .toolbar{gap:3px}
   button{height:35px;min-width:35px;padding:0 8px;border-radius:9px}
   .icon-btn{width:35px}
-  .reader-content.vertical{padding:20px 18px 22px 30px}
+  .reader-content.vertical{
+    padding:20px 18px 22px 30px;
+    letter-spacing:.02em;
+  }
   .reader-content.pinyin-grid{padding:18px 12px 20px 18px!important}
 
   .toc{grid-template-columns:1fr}
@@ -486,7 +489,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      閱讀增強版 V12。 本檔包含四十八品完整繁體經文，可離線閱讀。字體、排版、主題、書籤與每品閱讀位置只保存在目前瀏覽器。經文依公開流通版本整理，正式上線前仍建議與指定底本逐字校勘。
+      閱讀增強版 V13。 本檔包含四十八品完整繁體經文，可離線閱讀。字體、排版、主題、書籤與每品閱讀位置只保存在目前瀏覽器。經文依公開流通版本整理，正式上線前仍建議與指定底本逐字校勘。
     </section>
   </aside>
 </div>
@@ -506,9 +509,9 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v12";
+  const STORAGE_KEY = "wuliangshou-reader-v13";
   const defaults = {
-    chapter:0,fontSize:28,lineHeight:2.02,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
+    chapter:0,fontSize:28,lineHeight:1.72,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
   };
   let state;
