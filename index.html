@@ -415,6 +415,19 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   -webkit-transform:none!important;
   -webkit-text-stroke:0 transparent!important;
 }
+.py-label .py-corrected-fallback{
+  font-weight:600!important;
+  color:currentColor!important;
+  opacity:1!important;
+  -webkit-text-stroke:.018em currentColor!important;
+  paint-order:stroke fill;
+}
+.proof-current-text{
+  font-weight:600;
+  color:var(--muted);
+  opacity:1;
+}
+
 .py-label{
   width:var(--py-label-width);
   height:var(--py-label-height);
@@ -831,7 +844,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      PDF逐字校訂版 V33。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
+      PDF快捷校訂版 V34。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
     </section>
   </aside>
 </div>
@@ -849,7 +862,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 <section class="proof-shell" id="proofShell" hidden aria-label="拼音校對">
   <div class="proof-card proof-login" id="proofLoginCard">
     <h2>拼音校對</h2>
-    <p>此入口仅供校对使用。请输入校对密码。</p>
+    <p>此页面由 Alt＋Z 调出，仅供校对使用。请输入校对密码。</p>
     <input id="proofPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="校对密码">
     <div class="proof-error" id="proofError"></div>
     <div class="proof-login-actions">
@@ -886,7 +899,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v33";
+  const STORAGE_KEY = "wuliangshou-reader-v34";
   const defaults = {
     chapter:0,fontSize:28,lineHeight:1.72,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
@@ -915,11 +928,18 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   let saveTimer = null;
   let activeHighlight = "";
 
-  const PROOF_ROUTE = "#pyproof";
+  const PROOF_SHORTCUT = "Alt+Z";
   const PROOF_PASSWORD_HASH = "e344a0ec";
   let proofAuthenticated = false;
   const PROOF_OVERRIDES_KEY = "wuliangshou-pinyin-overrides-v1";
   const PDF_PINYIN_TEXT_MAP = Object.freeze({"E10E":"rú","E21C":"shì","E1CF":"wǒ","E39E":"wén","E218":"yì","E21D":"shí","E034":"fó","E0E2":"zài","E2F7":"wáng","E3C0":"shè","E0E9":"chéng","E396":"qí","E4A5":"dū","E151":"jué","E14E":"shān","E00A":"zhōng","E3BC":"yǔ","E100":"dà","E27F":"bǐ","E009":"qiū","E331":"zhòng","E3D5":"wàn","E016":"èr","E094":"qiān","E01F":"rén","E041":"jù","E054":"yī","E358":"qiè","E39C":"shèng","E344":"shén","E46C":"tōng","E158":"yǐ","E47A":"dá","E065":"qí","E0B3":"míng","E22F":"yuē","E13F":"zūn","E395":"zhě","E1C4":"jiāo","E4AF":"chén","E074":"lì","E32A":"mù","E2E8":"jiān","E470":"lián","E461":"jiā","E343":"yè","E4A8":"ā","E4BE":"nán","E360":"děng","E397":"ér","E0C9":"wéi","E004":"shàng","E4E8":"shǒu","E0A3":"yòu","E237":"yǒu","E221":"pǔ","E43B":"xián","E3D2":"pú","E3DF":"sà","E207":"wén","E277":"shū","E15C":"shī","E17A":"mí","E086":"lè","E0A4":"jí","E083":"jié","E324":"jiē","E037":"lái","E4BA":"jí","E235":"huì","E423":"hù","E093":"shí","E062":"liù","E26F":"zhèng","E0FA":"shì","E1D7":"suǒ","E41A":"wèi","E0CD":"shàn","E197":"sī","E1AD":"wéi","E1BF":"huì","E45D":"biàn","E1DA":"cái","E3FD":"guān","E2CF":"wú","E032":"zhù","E3C6":"huá","E05A":"guāng","E3CC":"yīng","E13C":"bǎo","E161":"chuáng","E223":"zhì","E121":"jì","E24F":"gēn","E03F":"xìn","E4D7":"yuàn","E4E9":"xiāng","E42B":"xiàng","E076":"zhì","E3ED":"xíng","E3FE":"jiě","E3AE":"tuō","E0C2":"xián","E063":"gòng","E480":"zūn","E040":"xiū","E00E":"zhī","E188":"dé","E066":"jù","E446":"zú","E01E":"liàng","E128":"ān","E07F":"gōng","E298":"fǎ","E475":"yóu","E271":"bù","E20C":"fāng","E266":"quán","E03B":"biàn","E05E":"rù","E3B4":"zàng","E353":"jiū","E35A":"jìng","E17D":"bǐ","E14F":"àn","E20D":"yú","E008":"shì","E312":"jiè","E1CE":"chéng","E3FC":"jué","E1E6":"shě","E05D":"dōu","E2F5":"shuài","E4AB":"jiàng","E12E":"gōng","E253":"qì","E031":"wèi","E06F":"chū","E130":"jiā","E3CB":"kǔ","E124":"xué","E479":"dào","E035":"zuò","E209":"sī","E342":"shì","E2FC":"xiàn","E4CF":"shùn","E4A1":"jiān","E1FD":"gù","E028":"yǐ","E12A":"dìng","E07E":"lì","E345":"jiàng","E02D":"fú","E4F4":"mó","E19C":"yuàn","E183":"dé","E117":"wēi","E111":"miào","E234":"zuì","E101":"tiān","E274":"guī","E029":"yǎng","E413":"qǐng","E45A":"zhuǎn","E459":"lún","E15F":"cháng","E4CB":"yīn","E419":"zhū","E33A":"pò","E2D4":"fán","E1B0":"nǎo","E0F9":"huài","E269":"yù","E0F4":"qiàn","E29D":"xǐ","E2C7":"zhuó","E0E8":"gòu","E28D":"wū","E4DB":"xiǎn","E216":"míng","E2B1":"qīng","E322":"bái","E250":"diào","E30B":"shēng","E12C":"xuān","E2FD":"lǐ","E435":"zhù","E348":"fú","E30E":"tián","E3E3":"lè","E1FE":"jiù","E31E":"liáo","E003":"sān","E2C9":"guàn","E4CD":"dǐng","E4B2":"jiē","E1E8":"shòu","E1EC":"tí","E402":"jì","E2CD":"wéi","E01C":"jiāo","E3E9":"shé","E4FA":"lí","E392":"xí","E32D":"xiāng","E33B":"yīng","E483":"biān","E43E":"shú","E192":"niàn","E07A":"chà","E3AC":"néng","E420":"pì","E167":"huàn","E316":"yì","E052":"xiāng","E138":"shí","E0AD":"kě","E270":"cǐ","E01D":"yì","E187":"fù","E19B":"xìng","E25F":"yǎng","E49F":"kāi","E142":"dǎo","E390":"qún","E08F":"huà","E451":"shēn","E2EF":"yóu","E4C3":"diàn","E3F3":"liè","E3F9":"jiàn","E37B":"wǎng","E389":"chán","E07C":"fù","E47C":"yuǎn","E443":"chāo","E3A0":"shēng","E45B":"bì","E1F9":"zhī","E0E3":"de","E354":"kōng","E49D":"mén","E359":"lì","E005":"xià","E2B8":"miè","E16C":"dù","E1F1":"mó","E4A9":"tuó","E38E":"luó","E147":"ní","E4B5":"suí","E1A8":"wù","E3D3":"huá","E0D6":"yán","E21B":"mèi","E382":"zǒng","E1E3":"chí","E323":"bǎi","E2AE":"shēn","E349":"chán","E1A5":"xī","E332":"dǔ","E4CE":"qǐng","E0E1":"tǔ","E070":"fēn","E073":"bié","E408":"yǔ","E400":"yán","E32E":"zhēn","E4B3":"jì","E478":"guò","E18A":"xīn","E416":"dì","E2E4":"wù","E1B5":"yì","E3B7":"zì","E16E":"shù","E4D9":"lèi","E486":"bù","E0A5":"yǒu","E0A8":"shòu","E1BB":"shén","E34E":"zhǒng","E036":"shǐ","E376":"jué","E3BD":"xìng","E1AA":"bēi","E1B4":"mǐn","E1AB":"qíng","E2BF":"yǎn","E1B9":"cí","E330":"yǎn","E242":"dù","E1AF":"è","E445":"qù","E3FA":"shì","E3CA":"ruò","E157":"jǐ","E1E1":"zhěng","E2C6":"jì","E42F":"fù","E438":"hé","E2F2":"huò","E422":"yì","E391":"yī","E01A":"wǔ","E001":"qī","E10C":"nǚ","E3C4":"sè","E252":"fàn","E2E1":"ěr","E43F":"hè","E109":"yì","E3EB":"róng","E493":"jīn","E39D":"jù","E497":"jìng","E17C":"yǐng","E228":"chàng","E3EF":"biǎo","E260":"shù","E425":"biàn","E09B":"jí","E022":"jīn","E211":"rì","E1A4":"yuè","E42D":"yù","E2AB":"jìng","E4D6":"yán","E3CF":"zhuāng","E185":"cóng","E2B6":"xī","E23E":"wèi","E14B":"céng","E0CE":"xǐ","E335":"zhān","E15A":"xī","E16D":"zuò","E441":"qǐ","E04A":"piān","E3F1":"tǎn","E0AE":"yòu","E3A4":"jiān","E49C":"cháng","E44A":"guì","E0B0":"hé","E1E9":"zhǎng","E105":"qí","E2E5":"tè","E089":"shèng","E0A1":"qù","E2E0":"yé","E024":"tā","E033":"hé","E393":"yào","E303":"ruì","E00C":"nǎi","E40E":"shuō","E0BC":"gào","E0C6":"zāi","E28A":"rǔ","E0C3":"āi","E25C":"lè","E0CB":"wèn","E2C0":"hàn","E159":"bù","E20E":"shī","E33D":"lèi","E284":"mín","E3EA":"yuān","E4DE":"fēi","E454":"rú","E087":"dòng","E043":"bèi","E317":"dāng","E0B7":"hán","E4C6":"líng","E0DA":"yīn","E329":"jǐn","E336":"jīn","E4A6":"chǎn","E200":"jiào","E3D4":"méng","E1AE":"huì","E048":"zhí","E057":"yōu","E22B":"tán","E0FD":"duō","E4E7":"ráo","E326":"yì","E337":"zhī","E492":"liàng","E4B4":"zhàng","E340":"ài","E055":"yì","E0F6":"zēng","E2B2":"jiǎn","E258":"jí","E3A1":"tīng","E0BB":"wú","E114":"jiě","E103":"yāng","E46D":"shì","E186":"yù","E002":"zhàng","E102":"fū","E0D8":"sì","E378":"jīng","E41C":"jiǎng","E0DD":"guó","E00B":"zhǔ","E26D":"huān","E140":"xún","E321":"fā","E1E5":"juān","E291":"shā","E3E7":"hào","E4EF":"gāo","E084":"yǒng","E0C8":"zhé","E35F":"dì","E000":"yī","E0ED":"jiān","E0DC":"gù","E006":"bù","E36A":"jīng","E471":"jìn","E44D":"yú","E17E":"wǎng","E405":"yì","E34A":"lǐ","E0B4":"xiàng","E02F":"jiā","E427":"zàn","E170":"guǎng","E4D1":"sòng","E35C":"duān","E2D3":"zhào","E236":"yuè","E2CA":"huǒ","E2FB":"zhū","E092":"nì","E22D":"yào","E0AF":"gè","E1ED":"yáng","E1D0":"jiè","E2A4":"hǎi","E05F":"nèi","E0F3":"chén","E08A":"láo","E46E":"sù","E075":"dào","E433":"tān","E333":"chēn","E287":"yǒng","E1AC":"huò","E394":"lǎo","E31A":"bìng","E275":"sǐ","E18D":"rěn","E299":"bō","E027":"lìng","E049":"jiǎ","E19E":"héng","E288":"qiú","E1FC":"fàng","E1B8":"gǎn","E148":"jū","E047":"lún","E476":"yùn","E1DE":"bá","E41D":"zhèng","E380":"zòng","E26E":"zhǐ","E468":"tuì","E0A7":"qǔ","E107":"fèng","E08C":"qín","E240":"běn","E455":"xiào","E11E":"zì","E487":"dōu","E139":"níng","E0B6":"bù","E208":"dòu","E273":"lì","E145":"shàng","E357":"qióng","E16B":"dǐ","E3B9":"zhì","E248":"guǒ","E146":"jiù","E1C8":"yīng","E1F7":"shè","E129":"hóng","E4C9":"fēi","E0F5":"jìng","E407":"shì","E2BC":"mǎn","E18E":"zhì","E0E0":"yuán","E272":"suì","E4F8":"cū","E482":"xuǎn","E1F3":"zé","E375":"jié","E370":"suǒ","E1A3":"gōng","E03E":"bǎo","E3AA":"zhī","E015":"shì","E334":"le","E210":"jì","E091":"zā","E137":"chá","E2F0":"yù","E4E4":"è","E4F2":"guǐ","E34B":"qín","E2F3":"shòu","E2D0":"yàn","E399":"nòu","E3E2":"miǎo","E231":"gèng","E0F8":"duò","E371":"zi","E33E":"mó","E2C2":"jié","E0B2":"tóng","E17B":"xíng","E42E":"mào","E156":"chà","E10D":"hǎo","E48E":"chǒu","E132":"sù","E0BF":"mìng","E29E":"dòng","E189":"chè","E36D":"nà","E30F":"yóu","E134":"mì","E0BD":"zhōu","E152":"xún","E4BD":"lí","E4C8":"jìng","E28F":"jué","E2A5":"niè","E25B":"pán","E3FF":"chù","E3D1":"mò","E0FB":"shòu","E37E":"yuán","E401":"jì","E34F":"chēng","E3F7":"lè","E0D9":"huí","E4AE":"chú","E469":"nì","E410":"fěi","E41B":"bàng","E220":"zhòu","E0FE":"yè","E20B":"duàn","E3B6":"lín","E373":"zhōng","E45F":"yíng","E079":"qián","E4D0":"xū","E3BB":"yú","E444":"yuè","E3BA":"zhì","E386":"xì","E255":"zhí","E473":"suì","E1A6":"huǐ","E11A":"fù","E09F":"yàn","E1A9":"huàn","E311":"nán","E28C":"chí","E3DC":"lián","E1E0":"bài","E0E7":"xíng","E203":"jìng","E181":"hòu","E436":"guì","E38A":"quē","E2D8":"rè","E191":"kuài","E2BE":"lòu","E1B1":"xiǎng","E07B":"gāng","E171":"yán","E412":"tán","E498":"zhōng","E18B":"bì","E3F5":"bǔ","E1DB":"bèi","E175":"hóng","E496":"kǎi","E4BB":"suī","E1D1":"huò","E4E1":"yǐn","E4DF":"shí","E3EE":"yī","E239":"fú","E4F7":"lì","E45C":"biàn","E214":"xún","E0F0":"chǎng","E490":"lǐ","E081":"liè","E22A":"le","E4CA":"miàn","E09A":"bó","E305":"yíng","E3E6":"xū","E27A":"diàn","E25D":"lóu","E2A0":"liú","E2D5":"xūn","E026":"dài","E104":"shī","E162":"píng","E387":"jì","E172":"jiàn","E1C3":"yōu","E0C4":"pǐn","E2A6":"xiāo","E06A":"míng","E09D":"è","E11C":"nán","E46B":"tú","E227":"àn","E49E":"bì","E4B8":"xióng","E023":"zi","E0BA":"hǒu","E4D2":"yǔ","E2F9":"zhēn","E4C4":"zhèn","E202":"sàn","E2D1":"rán","E2EE":"měng","E13E":"zhuān","E16F":"kuò","E2F1":"dú","E3F0":"shuāi","E350":"jī","E098":"zhuó","E0BE":"wèi","E030":"dàn","E1C6":"yì","E10F":"wàng","E039":"yī","E144":"shǎo","E046":"juàn","E1C9":"huái","E0C0":"hé","E1B7":"ài","E08D":"quàn","E418":"yù","E361":"cè","E04D":"wěi","E411":"chǎn","E230":"qū","E452":"guǐ","E365":"fàn","E0AA":"kǒu","E256":"yè","E41F":"jī","E180":"lǜ","E24B":"rǎn","E3D6":"luò","E32F":"juàn","E14D":"shǔ","E48A":"zhuó","E45E":"rǔ","E42C":"háo","E115":"xìng","E15B":"dì","E491":"zhǒng","E02A":"jiān","E24E":"zhān","E263":"tán","E061":"bā","E1D9":"shǒu","E48C":"chóu","E3F6":"xī","E4A3":"yán","E2A2":"fú","E0DE":"wéi","E384":"rào","E3DB":"gài","E09C":"què","E0E5":"zuò","E403":"shè","E176":"dì","E013":"yě","E3A6":"yǔ","E136":"hán","E226":"shǔ","E4BF":"yǔ","E143":"xiǎo","E28B":"jiāng","E4B0":"líng","E0E6":"kēng","E0E4":"kǎn","E3CE":"jīng","E254":"jí","E341":"lì","E499":"tiě","E339":"shí","E4F9":"huáng","E13B":"kuān","E4AC":"xiàn","E18C":"dāo","E0EF":"bào","E39A":"ěr","E13D":"jiāng","E318":"yí","E243":"dōng","E099":"nán","E090":"běi","E37A":"wéi","E460":"jìn","E474":"yù","E24C":"róu","E02E":"xiū","E00D":"jiǔ","E219":"xīng","E34C":"sù","E35B":"jié","E1EB":"tuī","E362":"suàn","E281":"máo","E246":"xī","E33C":"suì","E294":"zhān","E2BB":"dī","E286":"shuǐ","E123":"shú","E0D0":"yù","E36E":"chún","E495":"yín","E2FE":"liú","E307":"lí","E222":"jīng","E2FF":"hǔ","E2F8":"pò","E38F":"měi","E2F6":"yù","E306":"mǎ","E302":"nǎo","E4BC":"zá","E4E5":"yú","E3D0":"jīng","E249":"zhī","E166":"gàn","E3D7":"yè","E251":"shāo","E019":"hù","E3C1":"xíng","E23A":"wàng","E259":"róng","E4DC":"fēng","E0CA":"shāng","E205":"fū","E225":"huī","E36C":"hóng","E379":"lǜ","E4C7":"qīng","E309":"yīng","E2FA":"luò","E4C1":"yún","E4E2":"shì","E24D":"zhù","E494":"líng","E49A":"duó","E3F8":"fù","E21A":"yìng","E2CC":"yán","E182":"xú","E0B9":"chuī","E4B9":"yǎ","E0D3":"cháng","E4CC":"xiǎng","E23D":"mù","E0EC":"táng","E265":"lán","E257":"dùn","E377":"luò","E40C":"sòng","E29F":"huán","E078":"zé","E153":"zuǒ","E297":"quán","E2B0":"qiǎn","E2B4":"zhàn","E0B1":"jí","E3C7":"fāng","E4EA":"fù","E295":"yán","E3C5":"fēn","E1DF":"jū","E2E2":"móu","E4D4":"tóu","E3CD":"mào","E2A3":"yù","E3B1":"xī","E3B0":"yāo","E3AF":"yè","E4D5":"jǐng","E06B":"lěng","E2B7":"wēn","E19A":"jí","E37F":"huǎn","E4EE":"tǐ","E2C4":"chè","E2C8":"lán","E29C":"zhù","E053":"sēng","E313":"wèi","E30A":"gān","E4C5":"lù","E32C":"zhí","E2D7":"shú","E456":"zhé","E131":"róng","E03D":"sú","E432":"pín","E012":"qǐ","E2EA":"zhuàng","E00F":"hū","E489":"bǐ","E4AA":"lòu","E48F":"shì","E15E":"dǎi","E3E5":"chù","E267":"cì","E30C":"yòng","E42A":"fēng","E160":"fān","E0D5":"qì","E325":"yíng","E351":"huì","E068":"guān","E125":"zhái","E442":"chēng","E1CA":"xuán","E21E":"huǎng","E126":"yǔ","E1D6":"fáng","E4A2":"gé","E2ED":"xiá","E352":"yǐn","E27D":"měi","E47D":"shì","E247":"lín","E4DD":"piāo","E014":"luàn","E14C":"lǚ","E23F":"méi","E1E4":"zhǐ","E3BE":"jǔ","E308":"huán","E072":"chū","E398":"gēng","E1B3":"yǔ","E20A":"xīn","E364":"jié","E0A6":"fǎn","E2F4":"xuán","E241":"zhū","E096":"bàn","E217":"hūn","E4A4":"àn","E2C5":"zhuó","E12D":"shì","E25E":"biāo","E173":"shì","E485":"xié","E292":"hé","E3BF":"shé","E409":"chéng","E465":"huí","E06D":"fán","E458":"bèi","E4FF":"zhāi","E0F1":"tǎ","E4E0":"fàn","E383":"zēng","E2DA":"dēng","E2DC":"shāo","E174":"yǐn","E0FF":"mèng","E067":"diǎn","E424":"dú","E232":"shū","E13A":"xiě","E388":"xù","E346":"jìn","E127":"shǒu","E2E9":"fàn","E279":"shā","E04C":"tōu","E328":"dào","E2AD":"yín","E37C":"qǐ","E060":"liǎng","E011":"jiǔ","E31F":"chī","E4ED":"jīng","E196":"bù","E4D8":"diān","E044":"dào","E224":"xiá","E1EA":"kōng","E195":"nù","E11D":"jí","E110":"dù","E4E6":"tiè","E1C1":"qiān","E2EC":"hú","E120":"xiào","E18F":"zhōng","E3E8":"kuī","E2A8":"shú","E213":"zǎo","E21F":"wǎn","E26B":"gē","E1C7":"xiè","E35E":"xiào","E1C2":"qìng","E4C2":"léi","E320":"dēng","E4E3":"yǎng","E1DC":"chéng","E285":"qì","E3E1":"xūn","E3EC":"zhòng","E108":"zòu","E500":"jī","E02C":"jì","E2D6":"xī","E199":"yí","E080":"jiā","E018":"yún","E08B":"shì","E118":"suō","E119":"pó","E19F":"kǒng","E1F4":"huàn","E310":"jiǎ","E29B":"ní","E0AC":"jiào","E14A":"zhǎn","E206":"shù","E1A2":"ēn","E3D8":"zàng","E3A3":"ròu","E367":"jiǎn","E47B":"wéi","E0EB":"zhí","E268":"xīn","E415":"lùn","E12B":"yī","E155":"jù","E4C0":"xuě","E2D9":"chì","E327":"shèng","E3E0":"xīn","E2C3":"rùn","E22E":"kuàng","E3DD":"yīn","E244":"chǔ","E0FC":"wài","E154":"qiǎo","E261":"jī","E4FC":"gǔ","E2AF":"chún","E1D4":"xì","E1F0":"cuī","E453":"jūn","E0EE":"kān","E4AD":"yuǎn","E315":"lüè","E47F":"chí","E4EB":"shǐ","E204":"zhěng","E264":"jiǎn","E3B3":"hān","E40B":"wù","E051":"qīng","E36B":"yuē","E201":"gǎn","E44F":"cuō","E448":"diē","E385":"shéng","E0F7":"mò","E1BC":"mù","E2AA":"dàn","E3C9":"bāo","E212":"dàn","E0A2":"cān","E4F1":"yù","E0CF":"dān","E262":"héng","E1F8":"lǎn","E082":"nǔ","E1D2":"jié","E2E6":"qiān","E41E":"náo","E2DE":"zhēng","E088":"wù","E07D":"jù","E2DD":"yíng","E169":"jǐ","E097":"bēi","E135":"fù","E372":"shǎo","E1C0":"lǜ","E440":"zǒu","E430":"cái","E4FE":"qí","E43A":"zéi","E04F":"zhài","E2CE":"fén","E2BD":"piào","E10B":"duó","E40F":"shuí","E2DF":"fù","E058":"xiōng","E3FB":"qīn","E1C5":"zēng","E1D5":"lì","E414":"zhèng","E1A0":"huì","E12F":"hài","E467":"zhuī","E46A":"zhú","E44B":"lù","E179":"qiáng","E04B":"jiàn","E17F":"dài","E06E":"xiōng","E347":"huò","E35D":"jìng","E1B6":"yú","E3DA":"méng","E1DD":"dǐ","E355":"tū","E466":"mí","E050":"shāng","E059":"xiān","E0EA":"yǔ","E19D":"guài","E007":"qiě","E0C7":"kū","E29A":"qì","E463":"dié","E4DA":"gù","E1CC":"liàn","E163":"nián","E20F":"xuán","E106":"nài","E27E":"dú","E1A1":"zì","E38C":"zuì","E4D3":"dùn","E23C":"qī","E233":"cáo","E08E":"wù","E369":"mí","E2B5":"yuán","E38B":"guà","E31B":"tòng","E3B8":"chòu","E0C1":"jiù","E177":"ruò","E278":"cán","E0B5":"tūn","E0D4":"dàn","E276":"yāng","E38D":"fá","E122":"gū","E3A2":"lóng","E32B":"máng","E31D":"yīn","E2EB":"kuáng","E3A5":"kěn","E168":"yōu","E1FA":"gǎi","E2E3":"láo","E071":"xíng","E4F3":"hún","E338":"duǎn","E056":"cháng","E229":"bào","E10A":"shē","E11B":"yín","E4EC":"jiāo","E02B":"rèn","E4B1":"xiàn","E069":"yuān","E245":"wǎng","E1EF":"sǔn","E3C3":"liáng","E26A":"qī","E406":"kuáng","E09E":"hòu","E194":"fèn","E01B":"wáng","E1A7":"xī","E038":"gòng","E1F6":"gěi","E133":"jì","E421":"zhí","E3AB":"xiōng","E1BA":"tài","E472":"yì","E437":"fèi","E064":"bīng","E1FB":"gōng","E1D3":"lù","E462":"pò","E3AD":"xié","E112":"qī","E1FF":"bài","E27C":"mǔ","E457":"qīng","E1BE":"màn","E238":"péng","E374":"héng","E03A":"qīn","E017":"yú","E1BD":"cán","E1CB":"jù","E43D":"lài","E368":"jí","E49B":"huò","E184":"xǐ","E045":"yǐ","E198":"dài","E293":"zhì","E39B":"dān","E48B":"jiǔ","E0D1":"shì","E4F5":"lǔ","E1D8":"hù","E417":"jiàn","E22C":"xiǎo","E439":"zī","E11F":"cún","E020":"rén","E40D":"huì","E3F2":"bèi","E1B2":"chóu","E48D":"kù","E2DB":"jiāo","E0DB":"kùn","E178":"zhāng","E2D2":"qióng","E190":"sōng","E0AB":"gǔ","E4FD":"bí","E042":"cāng","E03C":"zú","E282":"háo","E301":"fà","E46F":"zào","E0B8":"xī","E23B":"cháo","E484":"yì","E2CB":"zāi","E0A0":"lì","E1CD":"gē","E150":"chóng","E426":"ràng","E06C":"líng","E095":"shēng","E3C2":"bō","E2C1":"jiàn","E40A":"jiè","E1E2":"nán","E193":"hū","E26C":"tàn","E4FB":"hēi","E0A9":"cóng","E428":"gǔ","E4A7":"pì","E2B9":"huàng","E2A1":"hào","E289":"hàn","E4B6":"yǐn","E3DE":"bì","E501":"lóng","E3D9":"wēi","E44C":"yǒng","E450":"yuè","E319":"jí","E33F":"qìng","E300":"qín","E304":"sè","E363":"kōng","E366":"hóu","E141":"duì","E283":"shì","E116":"wéi","E4F6":"niǎo","E3A9":"tāi","E449":"jiā","E447":"fū","E477":"biàn","E1F5":"jù","E15D":"zhàng","E356":"chuāng","E25A":"tà","E381":"zhí","E3B5":"chén","E0DF":"yuán","E3C8":"yuàn","E434":"zé","E05C":"miǎn","E488":"xiāng","E39F":"cōng","E404":"hē","E431":"gòng","E149":"qū","E3A8":"bèi","E2BA":"zhì","E314":"liú","E44E":"yǒng","E2A9":"lèi","E47E":"zāo","E0D7":"zhǔ","E2AC":"lún","E04E":"bèi","E27B":"huǐ","E1E7":"jié","E164":"bìng","E010":"chéng","E2B3":"cè","E165":"xìng","E113":"shǐ","E36F":"fēn"});
+  const PDF_PINYIN_GLYPH_BY_TEXT = Object.freeze(
+    Object.entries(PDF_PINYIN_TEXT_MAP).reduce((lookup,[code,value]) => {
+      const key = String(value || "").trim().toLowerCase().normalize("NFC");
+      if (key && !lookup[key]) lookup[key] = code;
+      return lookup;
+    },{})
+  );
   let proofOverrides = {};
   try { proofOverrides = JSON.parse(localStorage.getItem(PROOF_OVERRIDES_KEY) || "{}"); }
   catch { proofOverrides = {}; }
@@ -1298,6 +1318,18 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     return metrics;
   }
 
+  function pinyinGlyphMetricsForText(value) {
+    const key = String(value || "").trim().toLowerCase().normalize("NFC");
+    const code = PDF_PINYIN_GLYPH_BY_TEXT[key];
+    if (!code) return null;
+    return pinyinGlyphMetrics(String.fromCodePoint(parseInt(code,16)));
+  }
+
+  function pinyinSvgHTML(metrics, extraClass="") {
+    const className = ["py-svg",extraClass].filter(Boolean).join(" ");
+    return `<svg class="${className}" aria-hidden="true" viewBox="0 0 ${metrics.width} ${metrics.height}" preserveAspectRatio="xMinYMid meet" style="--pg-w:${metrics.widthFactor};--pg-h:${metrics.heightFactor}"><use href="#pg-${metrics.code}" width="${metrics.width}" height="${metrics.height}"></use></svg>`;
+  }
+
   function renderPinyinCell(entry) {
     if (entry.blank) return `<div class="py-cell py-blank"></div>`;
     const classes = [
@@ -1309,12 +1341,23 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const trailing = hangingPunctuationHTML(entry.trailingPunct || "");
     const override = entry.proofKey ? String(proofOverrides[entry.proofKey] || "") : "";
     const effectiveText = override || entry.pt || "";
-    const metrics = !effectiveText && entry.pg && isCJKChar(entry.ch) ? pinyinGlyphMetrics(entry.pg) : null;
-    const label = effectiveText && isCJKChar(entry.ch)
-      ? `<span class="py-label"><span class="py-text">${escapeHTML(effectiveText)}</span></span>`
-      : (metrics
-        ? `<span class="py-label"><svg class="py-svg" aria-hidden="true" viewBox="0 0 ${metrics.width} ${metrics.height}" preserveAspectRatio="xMinYMid meet" style="--pg-w:${metrics.widthFactor};--pg-h:${metrics.heightFactor}"><use href="#pg-${metrics.code}" width="${metrics.width}" height="${metrics.height}"></use></svg></span>`
-        : "");
+    const correctedMetrics = override && isCJKChar(entry.ch)
+      ? pinyinGlyphMetricsForText(override)
+      : null;
+    const originalMetrics = !override && !entry.pt && entry.pg && isCJKChar(entry.ch)
+      ? pinyinGlyphMetrics(entry.pg)
+      : null;
+    let label = "";
+    if (isCJKChar(entry.ch)) {
+      if (correctedMetrics) {
+        label = `<span class="py-label" data-pinyin-render="corrected-svg">${pinyinSvgHTML(correctedMetrics,"py-corrected-svg")}</span>`;
+      } else if (effectiveText) {
+        const fallbackClass = override ? " py-corrected-fallback" : "";
+        label = `<span class="py-label"><span class="py-text${fallbackClass}">${escapeHTML(effectiveText)}</span></span>`;
+      } else if (originalMetrics) {
+        label = `<span class="py-label" data-pinyin-render="original-svg">${pinyinSvgHTML(originalMetrics)}</span>`;
+      }
+    }
     const proofAttr = entry.proofKey ? ` data-proof-key="${escapeHTML(entry.proofKey)}"` : "";
     return `<div class="${classes}"${proofAttr}><span class="py-char">${glyph}${trailing}</span>${label}</div>`;
   }
@@ -1820,10 +1863,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   });
 
 
-  function proofRouteActive() {
-    return String(location.hash || "").toLowerCase() === PROOF_ROUTE;
-  }
-
   function proofPasswordHash(value) {
     let hash = 0x811c9dc5;
     const bytes = new TextEncoder().encode(String(value));
@@ -1918,11 +1957,19 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 
   function proofPinyinVisual(item) {
     const override = String(proofOverrides[item.key] || "");
-    const text = override || item.base || "";
-    if (text) return `<span>${escapeHTML(text)}</span>`;
-    if (!item.pg) return `<span>—</span>`;
-    const metrics = pinyinGlyphMetrics(item.pg);
-    return `<svg class="proof-current-svg" aria-label="原拼音图形" viewBox="0 0 ${metrics.width} ${metrics.height}" preserveAspectRatio="xMinYMid meet"><use href="#pg-${metrics.code}" width="${metrics.width}" height="${metrics.height}"></use></svg>`;
+    if (override) {
+      const correctedMetrics = pinyinGlyphMetricsForText(override);
+      if (correctedMetrics) {
+        return `<svg class="proof-current-svg" aria-label="校正拼音图形" viewBox="0 0 ${correctedMetrics.width} ${correctedMetrics.height}" preserveAspectRatio="xMinYMid meet"><use href="#pg-${correctedMetrics.code}" width="${correctedMetrics.width}" height="${correctedMetrics.height}"></use></svg>`;
+      }
+      return `<span class="proof-current-text">${escapeHTML(override)}</span>`;
+    }
+    if (item.pg) {
+      const metrics = pinyinGlyphMetrics(item.pg);
+      return `<svg class="proof-current-svg" aria-label="原拼音图形" viewBox="0 0 ${metrics.width} ${metrics.height}" preserveAspectRatio="xMinYMid meet"><use href="#pg-${metrics.code}" width="${metrics.width}" height="${metrics.height}"></use></svg>`;
+    }
+    if (item.base) return `<span class="proof-current-text">${escapeHTML(item.base)}</span>`;
+    return `<span>—</span>`;
   }
 
   function toneMarkSyllable(raw) {
@@ -2037,12 +2084,17 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   function closeProofTools() {
     proofAuthenticated = false;
     $("proofShell").hidden = true;
-    const cleanUrl = location.href.replace(/#.*$/,"");
-    try {
-      history.replaceState(null,"",cleanUrl);
-    } catch {
-      location.hash = "";
+    $("proofPassword").value = "";
+    $("proofError").textContent = "";
+  }
+
+  function toggleProofToolsFromShortcut() {
+    if (!$("proofShell").hidden) {
+      closeProofTools();
+      return;
     }
+    proofAuthenticated = false;
+    showProofLogin();
   }
 
   async function attemptProofLogin() {
@@ -2060,16 +2112,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     } catch {
       $("proofError").textContent = "当前浏览器无法完成密码校验。";
     }
-  }
-
-  function openProofRoute() {
-    if (!proofRouteActive()) {
-      proofAuthenticated = false;
-      $("proofShell").hidden = true;
-      return;
-    }
-    if (proofAuthenticated) showProofEditor();
-    else showProofLogin();
   }
 
   function initProofTools() {
@@ -2114,8 +2156,18 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       event.preventDefault();
       saveProofItem(event.target.dataset.proofInput,event.target);
     });
-    window.addEventListener("hashchange",openProofRoute);
-    openProofRoute();
+    document.addEventListener("keydown",event => {
+      const isAltZ = event.altKey
+        && !event.ctrlKey
+        && !event.metaKey
+        && (event.code === "KeyZ" || String(event.key).toLowerCase() === "z");
+      if (!isAltZ || event.repeat) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleProofToolsFromShortcut();
+    }, true);
+    proofAuthenticated = false;
+    $("proofShell").hidden = true;
   }
 
 
