@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#efe7d7">
 <title>佛說大乘無量壽莊嚴清淨平等覺經</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-tc-webfont@1.0.0/style.css">
 <style>
 :root{
   --bg:#efe7d7;--panel:#f8f2e7;--panel2:#f3eadb;--text:#2f2923;
   --muted:#756a5e;--line:rgba(67,49,33,.14);--accent:#855638;
   --accent-soft:rgba(133,86,56,.11);--shadow:0 22px 70px rgba(59,42,25,.13);
-  --font-size:28px;--line-height:2.02;--header:66px;--footer:54px;
+  --font-size:29px;--line-height:2.02;--header:64px;--footer:64px;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -18,7 +19,8 @@ body{
   color:var(--text);background:
   radial-gradient(circle at 10% 5%,rgba(133,86,56,.07),transparent 25%),
   radial-gradient(circle at 90% 92%,rgba(133,86,56,.05),transparent 28%),var(--bg);
-  font-family:"Songti SC","STSong","Noto Serif TC","Noto Serif CJK TC","PMingLiU",serif;
+  font-family:"Kaiti TC","STKaiti","DFKai-SB","BiauKai","LXGW WenKai TC","KaiTi",serif;
+  font-synthesis:none;font-kerning:normal;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   overflow:hidden;
 }
 body.dark{
@@ -33,13 +35,14 @@ body.paper{
 button,input{font:inherit}
 button{
   border:1px solid var(--line);background:transparent;color:var(--text);
-  border-radius:999px;height:38px;padding:0 13px;cursor:pointer;transition:.16s ease;
+  border-radius:12px;height:42px;min-width:42px;padding:0 13px;cursor:pointer;transition:.16s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 button:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-1px)}
 button:active{transform:none}
 button.active{color:#fff;background:var(--accent);border-color:var(--accent)}
 button:disabled{opacity:.35;cursor:not-allowed;transform:none}
-.icon-btn{width:40px;padding:0;display:grid;place-items:center}
+.icon-btn{width:42px;padding:0;display:grid;place-items:center;font-size:19px}
 .topbar{
   position:fixed;z-index:30;inset:0 0 auto 0;height:calc(var(--header) + env(safe-area-inset-top));
   padding:env(safe-area-inset-top) 14px 0;display:flex;align-items:center;gap:9px;
@@ -55,7 +58,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .book-title,.chapter-mini{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .book-title{font-size:14px;letter-spacing:.06em}
 .chapter-mini{margin-top:3px;color:var(--muted);font-size:12px}
-.toolbar{display:flex;gap:6px;align-items:center}
+.toolbar{display:flex;gap:6px;align-items:center;flex:0 0 auto}
 .reader-stage{
   position:fixed;inset:calc(var(--header) + env(safe-area-inset-top)) 0
   calc(var(--footer) + env(safe-area-inset-bottom)) 0;padding:16px;
@@ -66,29 +69,25 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
 }
 .reader-viewport{
   width:100%;height:100%;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  direction:rtl;
   scrollbar-color:var(--accent) transparent;
 }
 .reader-content{
   min-height:100%;font-size:var(--font-size);line-height:var(--line-height);
   letter-spacing:.075em;text-align:justify;text-justify:inter-ideograph;
-  font-variant-east-asian:traditional;
+  font-variant-east-asian:traditional;font-weight:400;
 }
-.reader-content.horizontal{writing-mode:horizontal-tb;padding:44px clamp(22px,7vw,92px) 76px}
 .reader-content.vertical{
   writing-mode:vertical-rl;text-orientation:upright;height:100%;min-width:100%;
-  padding:34px 42px 34px 54px;direction:ltr;
+  padding:32px 38px 32px 50px;direction:ltr;unicode-bidi:isolate;
 }
 .chapter-heading{
-  margin:0;color:var(--accent);font-weight:600;letter-spacing:.16em;
+  margin:0;color:var(--accent);font-weight:400;letter-spacing:.16em;
 }
-.horizontal .chapter-heading{text-align:center;font-size:1.03em;margin-bottom:1.6em}
 .vertical .chapter-heading{font-size:1.03em;margin-left:1.8em;padding-top:.4em}
 .reader-content p{margin:0}
-.horizontal p{margin:0 0 1.35em;text-indent:2em}
 .vertical p{margin:0 0 0 1.45em;text-indent:2em}
 .verse{color:color-mix(in srgb,var(--text) 92%,var(--accent));font-size:.96em}
-.horizontal .verse{margin:1.15em auto 1.55em;max-width:760px;text-align:center;line-height:1.9}
-.horizontal .verse span{display:block;word-spacing:1.7em}
 .vertical .verse{margin:0 0 0 1.7em}
 .vertical .verse span{display:block;margin-left:.7em;word-spacing:.8em}
 mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0 .04em}
@@ -99,7 +98,8 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   background:color-mix(in srgb,var(--panel) 91%,transparent);backdrop-filter:blur(18px);
   border-top:1px solid var(--line);
 }
-.progress-wrap{flex:1;min-width:80px;display:flex;align-items:center;gap:10px}
+.footer>button{height:46px;min-width:94px;border-radius:14px;font-size:15px;font-weight:600}
+.progress-wrap{flex:1;min-width:70px;display:flex;align-items:center;gap:9px}
 .progress-track{height:4px;flex:1;background:var(--line);border-radius:99px;overflow:hidden}
 .progress-fill{height:100%;width:0;background:var(--accent);border-radius:inherit;transition:width .1s linear}
 .progress-label{min-width:90px;text-align:center;color:var(--muted);font-size:12px}
@@ -155,24 +155,34 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .mobile-hide{display:inline-flex}
 @media(max-width:760px){
-  :root{--header:61px;--footer:52px;--font-size:25px}
-  .reader-stage{padding:7px}
-  .reader-card{border-radius:15px}
+  :root{--header:62px;--footer:64px;--font-size:27px}
+  .topbar{padding-left:7px;padding-right:7px;gap:6px}
+  .reader-stage{padding:0}
+  .reader-card{border:0;border-radius:0;box-shadow:none}
   .seal,.book-title,.mobile-hide{display:none}
-  .chapter-mini{font-size:13px;color:var(--text);margin:0}
+  .chapter-mini{font-size:13px;color:var(--text);margin:0;font-weight:600}
   .toolbar{gap:4px}
-  button{height:36px;padding:0 11px}
-  .icon-btn{width:36px}
-  .reader-content.horizontal{padding:30px 19px 68px}
-  .reader-content.vertical{padding:24px 24px 26px 34px}
+  button{height:42px;min-width:42px;padding:0 10px;border-radius:11px}
+  .icon-btn{width:42px}
+  .reader-content.vertical{padding:20px 18px 22px 30px}
   .toc{grid-template-columns:1fr}
-  .progress-label{min-width:64px}
-  .footer{padding-left:8px;padding-right:8px;gap:6px}
+  .progress-label{min-width:72px;font-size:11px}
+  .footer{padding-left:7px;padding-right:7px;gap:6px}
+  .footer>button{height:46px;min-width:82px;padding:0 12px;border-radius:13px}
+  .progress-wrap{gap:6px}
 }
 @media(max-width:440px){
+  :root{--font-size:26px}
+  .brand{min-width:58px}
+  .chapter-mini{font-size:12px}
   .toolbar .font-label{font-size:0}
-  .toolbar .font-label::after{content:"A";font-size:14px}
-  .progress-label{font-size:11px}
+  .toolbar .font-label::after{content:"字";font-size:14px}
+  .topbar button{height:40px;min-width:40px;padding:0 8px}
+  .topbar .icon-btn{width:40px}
+  .reader-content.vertical{padding:18px 14px 20px 25px}
+  .footer>button{min-width:74px;font-size:14px;padding:0 9px}
+  .progress-track{display:none}
+  .progress-label{min-width:68px}
 }
 @media print{
   body{overflow:visible;background:white}
@@ -195,9 +205,8 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </div>
   </div>
   <div class="toolbar">
-    <button id="fontDown" aria-label="縮小字體"><span class="font-label">字</span>−</button>
-    <button id="fontUp" aria-label="放大字體"><span class="font-label">字</span>＋</button>
-    <button id="directionBtn" aria-label="切換橫排或豎排">橫排</button>
+    <button id="fontDown" aria-label="縮小字體" title="縮小字體"><span class="font-label">字</span>−</button>
+    <button id="fontUp" aria-label="放大字體" title="放大字體"><span class="font-label">字</span>＋</button>
     <button class="icon-btn" id="bookmarkBtn" aria-label="收藏本品">☆</button>
     <button class="icon-btn" id="searchBtn" aria-label="全文搜尋">⌕</button>
   </div>
@@ -288,6 +297,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   let state;
   try { state = {...defaults,...JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}; }
   catch { state = {...defaults}; }
+  state.direction = "vertical";
 
   const $ = id => document.getElementById(id);
   const body = document.body;
@@ -343,9 +353,8 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     document.querySelectorAll("[data-theme]").forEach(button =>
       button.classList.toggle("active", button.dataset.theme === state.theme)
     );
-    content.classList.toggle("vertical", state.direction === "vertical");
-    content.classList.toggle("horizontal", state.direction === "horizontal");
-    $("directionBtn").textContent = state.direction === "vertical" ? "橫排" : "豎排";
+    content.classList.add("vertical");
+    content.classList.remove("horizontal");
   }
 
   function renderTOC(filter="") {
@@ -387,9 +396,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     activeHighlight = highlightTerm;
 
     requestAnimationFrame(() => {
-      const saved = restore ? Number(state.positions[state.chapter] || 0) : 0;
-      setReadingProgress(saved);
-      updateProgress();
+      if (restore) {
+        const saved = Number(state.positions[state.chapter] || 0);
+        setReadingProgress(saved);
+        updateProgress();
+      } else {
+        scrollToChapterStart();
+      }
+
       if (highlightTerm) {
         setTimeout(() => content.querySelector("mark")?.scrollIntoView({
           behavior:"smooth",block:"center",inline:"center"
@@ -407,30 +421,64 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
   function maxScroll() {
-    return state.direction === "vertical"
-      ? Math.max(0,viewport.scrollWidth - viewport.clientWidth)
-      : Math.max(0,viewport.scrollHeight - viewport.clientHeight);
+    return Math.max(0,viewport.scrollWidth - viewport.clientWidth);
   }
 
   function getReadingProgress() {
     const max = maxScroll();
     if (!max) return 0;
-    const value = state.direction === "vertical"
-      ? Math.abs(viewport.scrollLeft)
-      : viewport.scrollTop;
-    return Math.max(0,Math.min(1,value/max));
+    return Math.max(0,Math.min(1,Math.abs(viewport.scrollLeft)/max));
   }
 
   function setReadingProgress(progress) {
     const p = Math.max(0,Math.min(1,Number(progress)||0));
     const max = maxScroll();
-    if (state.direction === "vertical") {
-      viewport.scrollTop = 0;
-      viewport.scrollLeft = -max*p;
-      if (p > 0 && Math.abs(viewport.scrollLeft) < 1) viewport.scrollLeft = max*p;
+    viewport.scrollTop = 0;
+    viewport.scrollLeft = -max*p;
+    if (p > 0 && Math.abs(viewport.scrollLeft) < 1) viewport.scrollLeft = max*p;
+  }
+
+  function scrollToChapterStart() {
+    const heading = content.querySelector(".chapter-heading");
+    viewport.scrollTop = 0;
+
+    if (heading) {
+      heading.scrollIntoView({
+        behavior: "auto",
+        block: "start",
+        inline: "start"
+      });
     } else {
       viewport.scrollLeft = 0;
-      viewport.scrollTop = max*p;
+    }
+
+    // Repeat after layout and webfont loading, because vertical text width can change.
+    requestAnimationFrame(() => {
+      viewport.scrollTop = 0;
+      if (heading) {
+        heading.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+          inline: "start"
+        });
+      }
+      state.positions[state.chapter] = 0;
+      updateProgress();
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        viewport.scrollTop = 0;
+        if (heading) {
+          heading.scrollIntoView({
+            behavior: "auto",
+            block: "start",
+            inline: "start"
+          });
+        }
+        state.positions[state.chapter] = 0;
+        updateProgress();
+      });
     }
   }
 
@@ -476,16 +524,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     notify(`行距 ${state.lineHeight.toFixed(2)}`);
   }
 
-  function switchDirection() {
-    const progress = getReadingProgress();
-    state.direction = state.direction === "vertical" ? "horizontal" : "vertical";
-    applySettings(); save();
-    requestAnimationFrame(() => {
-      setReadingProgress(progress);
-      updateProgress();
-    });
-    notify(state.direction === "vertical" ? "已切換豎排" : "已切換橫排");
-  }
 
   function openDrawer() { drawerMask.classList.add("show"); }
   function closeDrawer() { drawerMask.classList.remove("show"); }
@@ -546,7 +584,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   $("drawerFontUp").addEventListener("click",()=>changeFont(2));
   $("lineDown").addEventListener("click",()=>changeLine(-.1));
   $("lineUp").addEventListener("click",()=>changeLine(.1));
-  $("directionBtn").addEventListener("click",switchDirection);
 
   document.querySelectorAll("[data-theme]").forEach(button => {
     button.addEventListener("click",() => {
@@ -563,7 +600,11 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   });
 
   $("prevBtn").addEventListener("click",()=>setChapter(state.chapter-1));
-  $("nextBtn").addEventListener("click",()=>setChapter(state.chapter+1));
+  $("nextBtn").addEventListener("click",() => {
+    const target = Math.min(chapters.length - 1, state.chapter + 1);
+    state.positions[target] = 0;
+    setChapter(target,{restore:false});
+  });
 
   $("searchBtn").addEventListener("click",openSearch);
   $("closeSearch").addEventListener("click",closeSearch);
@@ -586,7 +627,11 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   document.addEventListener("keydown",event => {
     if(event.key === "Escape"){closeDrawer();closeSearch();}
     if(event.altKey && event.key === "ArrowLeft" && state.chapter>0) setChapter(state.chapter-1);
-    if(event.altKey && event.key === "ArrowRight" && state.chapter<chapters.length-1) setChapter(state.chapter+1);
+    if(event.altKey && event.key === "ArrowRight" && state.chapter<chapters.length-1) {
+      const target = state.chapter + 1;
+      state.positions[target] = 0;
+      setChapter(target,{restore:false});
+    }
   });
 
   applySettings();
