@@ -11,7 +11,7 @@
   --muted:#756a5e;--line:rgba(67,49,33,.14);--accent:#855638;
   --accent-soft:rgba(133,86,56,.11);--shadow:0 22px 70px rgba(59,42,25,.13);
   --font-size:29px;--line-height:2.02;--header:64px;--footer:64px;
-  --sutra-font:"BiauKai","DFKai-SB","Kaiti TC","STKaiti","KaiTi","Songti TC","STSong","PMingLiU","MingLiU","Noto Serif TC",serif;
+  --sutra-font:"TW-Kai-Web","BiauKai","DFKai-SB","Kaiti TC","STKaiti","KaiTi",serif;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;touch-action:pan-x pan-y;}
@@ -87,7 +87,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .vertical .chapter-heading{font-size:1em;margin-left:1.8em;padding-top:.4em}
 .reader-content p{margin:0}
 .vertical p{margin:0 0 0 1.45em;text-indent:2em}
-.verse{color:color-mix(in srgb,var(--text) 92%,var(--accent));font-size:.96em}
+.verse{color:color-mix(in srgb,var(--text) 92%,var(--accent));font-size:1em}
 .vertical .verse{margin:0 0 0 1.7em}
 .vertical .verse span{display:block;margin-left:.7em;word-spacing:.8em}
 
@@ -101,6 +101,21 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
   white-space:nowrap;
   margin-inline:.22em;
 }
+
+/* 全經只使用一個正文基準字號；四十八願小標題除外 */
+.reader-content,
+.reader-content p,
+.reader-content .verse,
+.reader-content .verse span,
+.reader-content .chapter-heading{
+  font-size:var(--font-size) !important;
+  font-family:var(--sutra-font) !important;
+}
+.reader-content .vow-label{
+  font-size:calc(var(--font-size) * .64) !important;
+  font-family:var(--sutra-font) !important;
+}
+
 mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0 .04em}
 .loading{height:100%;display:grid;place-items:center;color:var(--muted)}
 .footer{
@@ -166,32 +181,32 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .mobile-hide{display:inline-flex}
 @media(max-width:760px){
-  :root{--header:62px;--footer:64px}
-  .topbar{padding-left:7px;padding-right:7px;gap:6px}
+  :root{--header:50px;--footer:52px}
+  .topbar{padding-left:5px;padding-right:5px;gap:4px}
   .reader-stage{padding:0}
   .reader-card{border:0;border-radius:0;box-shadow:none}
   .seal,.book-title,.mobile-hide{display:none}
-  .chapter-mini{font-size:13px;color:var(--text);margin:0;font-weight:600}
-  .toolbar{gap:4px}
-  button{height:42px;min-width:42px;padding:0 10px;border-radius:11px}
-  .icon-btn{width:42px}
+  .chapter-mini{font-size:12px;color:var(--text);margin:0;font-weight:600}
+  .toolbar{gap:3px}
+  button{height:35px;min-width:35px;padding:0 8px;border-radius:9px}
+  .icon-btn{width:35px}
   .reader-content.vertical{padding:20px 18px 22px 30px}
   .toc{grid-template-columns:1fr}
   .progress-label{min-width:72px;font-size:11px}
-  .footer{padding-left:7px;padding-right:7px;gap:6px}
-  .footer>button{height:46px;min-width:82px;padding:0 12px;border-radius:13px}
-  .progress-wrap{gap:6px}
+  .footer{padding-left:5px;padding-right:5px;gap:4px}
+  .footer>button{height:38px;min-width:72px;padding:0 9px;border-radius:10px;font-size:13px}
+  .progress-wrap{gap:4px}
 }
 @media(max-width:440px){
   :root{}
-  .brand{min-width:58px}
-  .chapter-mini{font-size:12px}
+  .brand{min-width:52px}
+  .chapter-mini{font-size:11px}
   .toolbar .font-label{font-size:0}
   .toolbar .font-label::after{content:"字";font-size:14px}
-  .topbar button{height:40px;min-width:40px;padding:0 8px}
-  .topbar .icon-btn{width:40px}
+  .topbar button{height:34px;min-width:34px;padding:0 7px}
+  .topbar .icon-btn{width:34px}
   .reader-content.vertical{padding:18px 14px 20px 25px}
-  .footer>button{min-width:74px;font-size:14px;padding:0 9px}
+  .footer>button{height:37px;min-width:66px;font-size:12px;padding:0 7px}
   .progress-track{display:none}
   .progress-label{min-width:68px}
 }
@@ -202,6 +217,15 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   .reader-card{box-shadow:none;border:none}
   .reader-viewport{overflow:visible}
   .reader-content{writing-mode:horizontal-tb!important;padding:20px!important}
+}
+</style>
+<style id="local-sutra-font">
+@font-face {
+  font-family: "TW-Kai-Web";
+  src: url("./TW-Kai.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
 }
 </style>
 </head>
@@ -653,7 +677,12 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 
   applySettings();
   renderTOC();
-  renderChapter();
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => renderChapter());
+  } else {
+    renderChapter();
+  }
 })();
 </script>
 </body>
