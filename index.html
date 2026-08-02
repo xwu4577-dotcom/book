@@ -91,7 +91,8 @@ html.font-ready .reader-content{visibility:visible}
   border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;
 }
 .reader-viewport{
-  width:100%;height:100%;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  width:100%;height:100%;overflow:auto;overscroll-behavior:contain;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
   direction:rtl;
   scrollbar-color:var(--accent) transparent;
 }
@@ -416,16 +417,24 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   -webkit-text-stroke:0 transparent!important;
 }
 .py-label .py-corrected-fallback{
-  font-weight:600!important;
-  color:currentColor!important;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","PingFang TC","Microsoft YaHei","Microsoft JhengHei",sans-serif!important;
+  font-size:var(--ruby-px)!important;
+  line-height:1!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+  color:inherit!important;
   opacity:1!important;
-  -webkit-text-stroke:.018em currentColor!important;
-  paint-order:stroke fill;
+  transform:none!important;
+  -webkit-transform:none!important;
+  -webkit-text-stroke:0 transparent!important;
+  paint-order:normal!important;
+  font-synthesis:none!important;
 }
 .proof-current-text{
-  font-weight:600;
+  font-weight:400;
   color:var(--muted);
   opacity:1;
+  -webkit-text-stroke:0 transparent;
 }
 
 .py-label{
@@ -849,7 +858,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      PDF雲端校訂版 V35。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
+      PDF雲端校訂版 V36。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
     </section>
   </aside>
 </div>
@@ -907,7 +916,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v35";
+  const STORAGE_KEY = "wuliangshou-reader-v36";
   const defaults = {
     chapter:0,fontSize:28,lineHeight:1.72,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
@@ -1823,6 +1832,123 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     state.positions[target] = 0;
     setChapter(target, {restore:false});
   });
+
+  // 移动端边界强滑翻品：
+  // 当前品末尾向右强滑进入下一品；当前品开头向左强滑返回上一品末尾。
+  const SWIPE_NAV_MIN_DISTANCE = 96;
+  const SWIPE_NAV_FAST_DISTANCE = 68;
+  const SWIPE_NAV_MIN_VELOCITY = .46;
+  const SWIPE_NAV_EDGE_PROGRESS = .985;
+  let readerSwipe = null;
+  let readerSwipeLocked = false;
+
+  function readerOverlayVisible() {
+    return drawerMask.classList.contains("show")
+      || searchPanel.classList.contains("show")
+      || !$("proofShell").hidden;
+  }
+
+  function readerSwipeBlockedTarget(target) {
+    return !!target?.closest?.("button,input,textarea,select,a,[contenteditable='true']");
+  }
+
+  function isChapterStartEdge(progress=getReadingProgress()) {
+    return maxScroll() <= 1 || progress <= (1 - SWIPE_NAV_EDGE_PROGRESS);
+  }
+
+  function isChapterEndEdge(progress=getReadingProgress()) {
+    return maxScroll() <= 1 || progress >= SWIPE_NAV_EDGE_PROGRESS;
+  }
+
+  function lockReaderSwipe() {
+    readerSwipeLocked = true;
+    window.setTimeout(() => { readerSwipeLocked = false; }, 650);
+  }
+
+  function swipeToNextChapter() {
+    if (readerSwipeLocked || state.chapter >= chapters.length - 1) return;
+    lockReaderSwipe();
+    const target = state.chapter + 1;
+    state.positions[target] = 0;
+    setChapter(target,{restore:false});
+    notify("已进入下一品");
+  }
+
+  function swipeToPreviousChapter() {
+    if (readerSwipeLocked || state.chapter <= 0) return;
+    lockReaderSwipe();
+    const target = state.chapter - 1;
+    state.positions[target] = 1;
+    setChapter(target,{restore:true});
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setReadingProgress(1);
+      updateProgress();
+    }));
+    notify("已返回上一品末尾");
+  }
+
+  viewport.addEventListener("touchstart",event => {
+    if (event.touches.length !== 1 || readerOverlayVisible()
+        || readerSwipeBlockedTarget(event.target)) {
+      readerSwipe = null;
+      return;
+    }
+    const touch = event.touches[0];
+    readerSwipe = {
+      startX:touch.clientX,
+      startY:touch.clientY,
+      lastX:touch.clientX,
+      lastY:touch.clientY,
+      startedAt:performance.now(),
+      startProgress:getReadingProgress()
+    };
+  },{passive:true});
+
+  viewport.addEventListener("touchmove",event => {
+    if (!readerSwipe || event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    readerSwipe.lastX = touch.clientX;
+    readerSwipe.lastY = touch.clientY;
+  },{passive:true});
+
+  viewport.addEventListener("touchend",event => {
+    if (!readerSwipe || readerSwipeLocked) {
+      readerSwipe = null;
+      return;
+    }
+
+    const touch = event.changedTouches?.[0];
+    const endX = touch ? touch.clientX : readerSwipe.lastX;
+    const endY = touch ? touch.clientY : readerSwipe.lastY;
+    const dx = endX - readerSwipe.startX;
+    const dy = endY - readerSwipe.startY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    const elapsed = Math.max(1,performance.now() - readerSwipe.startedAt);
+    const velocity = absX / elapsed;
+    const horizontal = absX > absY * 1.25;
+    const strong = absX >= SWIPE_NAV_MIN_DISTANCE
+      || (absX >= SWIPE_NAV_FAST_DISTANCE && velocity >= SWIPE_NAV_MIN_VELOCITY);
+    const startProgress = readerSwipe.startProgress;
+    readerSwipe = null;
+
+    if (!horizontal || !strong || readerOverlayVisible()) return;
+
+    // 手指向右：仅在当前品末尾进入下一品。
+    if (dx > 0 && isChapterEndEdge(startProgress)) {
+      swipeToNextChapter();
+      return;
+    }
+
+    // 手指向左：仅在当前品开头返回上一品，并落到上一品末尾。
+    if (dx < 0 && isChapterStartEdge(startProgress)) {
+      swipeToPreviousChapter();
+    }
+  },{passive:true});
+
+  viewport.addEventListener("touchcancel",() => {
+    readerSwipe = null;
+  },{passive:true});
 
   $("searchBtn").addEventListener("click",openSearch);
   $("closeSearch").addEventListener("click",closeSearch);
