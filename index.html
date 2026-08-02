@@ -858,7 +858,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      PDF雲端校訂版 V36。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
+      PDF雲端校訂版 V37。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
     </section>
   </aside>
 </div>
@@ -916,7 +916,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v36";
+  const STORAGE_KEY = "wuliangshou-reader-v37";
   const defaults = {
     chapter:0,fontSize:28,lineHeight:1.72,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
@@ -1871,7 +1871,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const target = state.chapter + 1;
     state.positions[target] = 0;
     setChapter(target,{restore:false});
-    notify("已进入下一品");
   }
 
   function swipeToPreviousChapter() {
@@ -1884,7 +1883,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       setReadingProgress(1);
       updateProgress();
     }));
-    notify("已返回上一品末尾");
   }
 
   viewport.addEventListener("touchstart",event => {
