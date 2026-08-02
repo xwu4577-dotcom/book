@@ -97,7 +97,7 @@ html.font-ready .reader-content{visibility:visible}
 }
 .reader-content{
   min-height:100%;font-family:var(--sutra-font);font-size:var(--font-size);line-height:var(--line-height);
-  letter-spacing:.03em;text-align:start;text-justify:auto;
+  letter-spacing:.015em;text-align:start;text-justify:auto;
   font-variant-east-asian:traditional;font-weight:400;
 }
 .reader-content.vertical{
@@ -173,10 +173,113 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .mode-actions{display:flex;gap:6px}
 .mode-actions button.active{color:#fff;background:var(--accent);border-color:var(--accent)}
 .reader-content .glyph{
-  display:inline-block;transform:scaleX(var(--glyph-scale));transform-origin:center;
-  -webkit-text-stroke:var(--stroke-width) currentColor;paint-order:stroke fill
+  display:inline-block;
+  inline-size:1em;
+  block-size:1em;
+  width:1em;
+  height:1em;
+  line-height:1!important;
+  margin:0;
+  padding:0;
+  vertical-align:middle;
+  transform:scaleX(var(--glyph-scale));
+  transform-origin:center;
+  -webkit-text-stroke:var(--stroke-width) currentColor;
+  paint-order:stroke fill;
 }
 .reader-content .vow-label .glyph{-webkit-text-stroke:calc(var(--stroke-width) * .62) currentColor}
+.reader-content .char-font{
+  display:inline;
+  line-height:inherit;
+  font-size:inherit;
+  -webkit-text-stroke:inherit;
+}
+
+.reader-content .punct,
+.reader-content .space-cell{
+  display:inline-block;
+  inline-size:1em;
+  block-size:1em;
+  width:1em;
+  height:1em;
+  line-height:1!important;
+  margin:0;
+  padding:0;
+  vertical-align:middle;
+  position:relative;
+  transform:none!important;
+  -webkit-transform:none!important;
+  -webkit-text-stroke:0 transparent!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+}
+.reader-content .punct-mark{
+  position:absolute;
+  box-sizing:border-box;
+  width:1em;
+  height:1em;
+  display:grid;
+  place-items:center;
+  line-height:1!important;
+  margin:0;
+  padding:0;
+  white-space:nowrap;
+  overflow:visible;
+  font-family:var(--sutra-font)!important;
+  font-weight:400!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  transform:none!important;
+  -webkit-transform:none!important;
+  font-feature-settings:"vert" 1,"vrt2" 1;
+}
+/* 句号不用字体字形定位，直接在字格右上绘制，避免竖排浏览器把字符盒拉宽。 */
+.reader-content .punct-corner[data-char="。"] .punct-mark{
+  display:none;
+}
+.reader-content .punct-corner[data-char="。"]::after{
+  content:"";
+  position:absolute;
+  top:.10em;
+  right:.10em;
+  width:.20em;
+  height:.20em;
+  box-sizing:border-box;
+  border:.045em solid currentColor;
+  border-radius:50%;
+}
+.reader-content .punct-corner[data-char="．"] .punct-mark{
+  display:none;
+}
+.reader-content .punct-corner[data-char="．"]::after{
+  content:"";
+  position:absolute;
+  top:.14em;
+  right:.14em;
+  width:.16em;
+  height:.16em;
+  border-radius:50%;
+  background:currentColor;
+}
+/* 顿号、逗号等固定在字格右上，盒子尺寸明确，不再跨到别列。 */
+.reader-content .punct-comma .punct-mark{
+  font-size:.62em;
+  top:.02em;
+  right:.02em;
+}
+.reader-content .punct-center .punct-mark{
+  font-size:.92em;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%)!important;
+  -webkit-transform:translate(-50%,-50%)!important;
+}
+.reader-content .punct-bracket .punct-mark{
+  font-size:1em;
+  inset:0;
+  writing-mode:vertical-rl!important;
+  text-orientation:mixed!important;
+}
 .reader-content.pinyin-grid{
   writing-mode:horizontal-tb!important;
   text-orientation:mixed!important;
@@ -340,7 +443,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   .icon-btn{width:35px}
   .reader-content.vertical{
     padding:20px 18px 22px 30px;
-    letter-spacing:.02em;
+    letter-spacing:.01em;
   }
   .reader-content.pinyin-grid{padding:18px 12px 20px 18px!important}
 
@@ -489,7 +592,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      閱讀增強版 V13。 本檔包含四十八品完整繁體經文，可離線閱讀。字體、排版、主題、書籤與每品閱讀位置只保存在目前瀏覽器。經文依公開流通版本整理，正式上線前仍建議與指定底本逐字校勘。
+      閱讀增強版 V20。 本檔包含四十八品完整繁體經文，可離線閱讀。字體、排版、主題、書籤與每品閱讀位置只保存在目前瀏覽器。經文依公開流通版本整理，正式上線前仍建議與指定底本逐字校勘。
     </section>
   </aside>
 </div>
@@ -509,7 +612,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 (() => {
   "use strict";
   const chapters = JSON.parse(document.getElementById("sutraData").textContent);
-  const STORAGE_KEY = "wuliangshou-reader-v13";
+  const STORAGE_KEY = "wuliangshou-reader-v20";
   const defaults = {
     chapter:0,fontSize:28,lineHeight:1.72,glyphScale:1,strokeWidth:0,pinyinMode:false,pinyinSize:2,direction:"vertical",theme:"light",
     positions:{},bookmarks:[],searchTerm:""
@@ -546,13 +649,36 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   // 以后需要替换某个字的字体时，只需在这里加入规则并嵌入对应字体。
   const CHAR_FONT_RULES = Object.freeze({});
   const isCJKChar = ch => /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(ch);
+  const isWhitespaceChar = ch => /\s|　/.test(ch);
+  const isCornerPunctuation = ch => /[。．]/.test(ch);
+  const isCommaPunctuation = ch => /[，、；：]/.test(ch);
+  const isCenterPunctuation = ch => /[！？…—]/.test(ch);
+  const isBracketPunctuation = ch => /[（）《》〈〉「」『』〔〕【】〖〗]/.test(ch);
+  const isPunctuationChar = ch =>
+    isCornerPunctuation(ch) || isCommaPunctuation(ch) ||
+    isCenterPunctuation(ch) || isBracketPunctuation(ch);
+
+  function punctuationHTML(ch) {
+    let kind = "punct-center";
+    if (isCornerPunctuation(ch)) kind = "punct-corner";
+    else if (isCommaPunctuation(ch)) kind = "punct-comma";
+    else if (isBracketPunctuation(ch)) kind = "punct-bracket";
+    return `<span class="punct ${kind}" data-char="${escapeHTML(ch)}"><span class="punct-mark">${escapeHTML(ch)}</span></span>`;
+  }
 
   function glyphHTML(ch, py="", highlighted=false) {
     const rule = CHAR_FONT_RULES[ch] || null;
     const style = rule?.fontFamily ? ` style="font-family:${escapeHTML(rule.fontFamily)}!important"` : "";
-    const glyph = isCJKChar(ch)
-      ? `<span class="glyph" data-char="${escapeHTML(ch)}"${style}>${escapeHTML(ch)}</span>`
-      : escapeHTML(ch);
+    let glyph;
+    if (isCJKChar(ch)) {
+      glyph = `<span class="glyph" data-char="${escapeHTML(ch)}"${style}>${escapeHTML(ch)}</span>`;
+    } else if (isPunctuationChar(ch)) {
+      glyph = punctuationHTML(ch);
+    } else if (isWhitespaceChar(ch)) {
+      glyph = `<span class="space-cell" aria-hidden="true"></span>`;
+    } else {
+      glyph = `<span class="punct punct-center"><span class="punct-mark">${escapeHTML(ch)}</span></span>`;
+    }
     return highlighted ? `<mark>${glyph}</mark>` : glyph;
   }
 
@@ -569,10 +695,19 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     return mask;
   }
 
+  function nativeCharHTML(ch, highlighted=false) {
+    const rule = CHAR_FONT_RULES[ch] || null;
+    const style = rule?.fontFamily ? ` style="font-family:${escapeHTML(rule.fontFamily)}!important"` : "";
+    const body = rule?.fontFamily
+      ? `<span class="char-font" data-char="${escapeHTML(ch)}"${style}>${escapeHTML(ch)}</span>`
+      : escapeHTML(ch);
+    return highlighted ? `<mark>${body}</mark>` : body;
+  }
+
   function renderGlyphRange(value, pinyin, start, end, mask) {
     let output = "";
     for (let index=start; index<end; index++) {
-      output += glyphHTML(value[index], pinyin[index] || "", !!mask[index]);
+      output += nativeCharHTML(value[index], !!mask[index]);
     }
     return output;
   }
@@ -687,9 +822,9 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const pinyinSizes = [.25,.30,.34,.39,.44];
     root.style.setProperty("--ruby-size", (pinyinSizes[state.pinyinSize] || .34) + "em");
 
-    const cellHeight = Math.max(28, state.fontSize * state.lineHeight);
+    const cellHeight = pinyinCellHeight();
     const labelWidth = Math.max(state.fontSize * 1.05, state.fontSize * (0.82 + state.pinyinSize * .10));
-    const columnGap = Math.max(4, state.fontSize * .18);
+    const columnGap = Math.max(3, state.fontSize * .13);
     root.style.setProperty("--py-cell-height", cellHeight.toFixed(2) + "px");
     root.style.setProperty("--py-label-width", labelWidth.toFixed(2) + "px");
     root.style.setProperty("--py-label-gap", Math.max(2, state.fontSize * .07).toFixed(2) + "px");
@@ -707,6 +842,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     content.classList.toggle("vertical", !state.pinyinMode);
     content.classList.toggle("pinyin-grid", state.pinyinMode);
     content.classList.remove("horizontal","pinyin-on");
+    if (state.pinyinMode) {
+      content.style.transform = "none";
+      content.style.webkitTextStroke = "0 transparent";
+    } else {
+      content.style.transformOrigin = "right top";
+      content.style.transform = `scaleX(${state.glyphScale})`;
+      content.style.webkitTextStroke = `${state.strokeWidth.toFixed(1)}px currentColor`;
+    }
     syncSutraMetrics();
     updateReadingControls();
   }
@@ -736,9 +879,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
 
+  function pinyinCellHeight() {
+    const tracking = window.matchMedia("(max-width:760px)").matches ? 0.01 : 0.015;
+    return state.fontSize * (1 + tracking);
+  }
+
   function pinyinRowsForViewport() {
     const availableHeight = Math.max(260, viewport.clientHeight - 52);
-    const cellHeight = Math.max(28, state.fontSize * state.lineHeight);
+    const cellHeight = pinyinCellHeight();
     return Math.max(5, Math.floor(availableHeight / cellHeight));
   }
 
@@ -802,14 +950,13 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     chapter.blocks.forEach((block, blockIndex) => {
       if (block.type === "verse") {
         block.lines.forEach((line, lineIndex) => {
-          blankPinyinEntries(bodyEntries, 1);
           appendPinyinEntries(
             bodyEntries,
             line,
             block.pyLines?.[lineIndex] || "",
             highlightTerm
           );
-          blankPinyinEntries(bodyEntries, 1);
+          if (lineIndex < block.lines.length - 1) blankPinyinEntries(bodyEntries, 1);
         });
       } else {
         blankPinyinEntries(bodyEntries, 2);
