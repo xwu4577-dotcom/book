@@ -2,24 +2,24 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#efe7d7">
 <title>佛說大乘無量壽莊嚴清淨平等覺經</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-tc-webfont@1.0.0/style.css">
 <style>
 :root{
   --bg:#efe7d7;--panel:#f8f2e7;--panel2:#f3eadb;--text:#2f2923;
   --muted:#756a5e;--line:rgba(67,49,33,.14);--accent:#855638;
   --accent-soft:rgba(133,86,56,.11);--shadow:0 22px 70px rgba(59,42,25,.13);
   --font-size:29px;--line-height:2.02;--header:64px;--footer:64px;
+  --sutra-font:"BiauKai","DFKai-SB","Kaiti TC","STKaiti","KaiTi","Songti TC","STSong","PMingLiU","MingLiU","Noto Serif TC",serif;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;touch-action:pan-x pan-y;}
 body{
   color:var(--text);background:
   radial-gradient(circle at 10% 5%,rgba(133,86,56,.07),transparent 25%),
   radial-gradient(circle at 90% 92%,rgba(133,86,56,.05),transparent 28%),var(--bg);
-  font-family:"Kaiti TC","STKaiti","DFKai-SB","BiauKai","LXGW WenKai TC","KaiTi",serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
   font-synthesis:none;font-kerning:normal;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   overflow:hidden;
 }
@@ -73,7 +73,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
   scrollbar-color:var(--accent) transparent;
 }
 .reader-content{
-  min-height:100%;font-size:var(--font-size);line-height:var(--line-height);
+  min-height:100%;font-family:var(--sutra-font);font-size:var(--font-size);line-height:var(--line-height);
   letter-spacing:.075em;text-align:justify;text-justify:inter-ideograph;
   font-variant-east-asian:traditional;font-weight:400;
 }
@@ -84,12 +84,23 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .chapter-heading{
   margin:0;color:var(--accent);font-weight:400;letter-spacing:.16em;
 }
-.vertical .chapter-heading{font-size:1.03em;margin-left:1.8em;padding-top:.4em}
+.vertical .chapter-heading{font-size:1em;margin-left:1.8em;padding-top:.4em}
 .reader-content p{margin:0}
 .vertical p{margin:0 0 0 1.45em;text-indent:2em}
 .verse{color:color-mix(in srgb,var(--text) 92%,var(--accent));font-size:.96em}
 .vertical .verse{margin:0 0 0 1.7em}
 .vertical .verse span{display:block;margin-left:.7em;word-spacing:.8em}
+
+.vow-label{
+  font-family:var(--sutra-font);
+  font-size:.64em;
+  line-height:1.28;
+  letter-spacing:.035em;
+  font-weight:400;
+  color:var(--muted);
+  white-space:nowrap;
+  margin-inline:.22em;
+}
 mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0 .04em}
 .loading{height:100%;display:grid;place-items:center;color:var(--muted)}
 .footer{
@@ -155,7 +166,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .mobile-hide{display:inline-flex}
 @media(max-width:760px){
-  :root{--header:62px;--footer:64px;--font-size:27px}
+  :root{--header:62px;--footer:64px}
   .topbar{padding-left:7px;padding-right:7px;gap:6px}
   .reader-stage{padding:0}
   .reader-card{border:0;border-radius:0;box-shadow:none}
@@ -172,7 +183,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   .progress-wrap{gap:6px}
 }
 @media(max-width:440px){
-  :root{--font-size:26px}
+  :root{}
   .brand{min-width:58px}
   .chapter-mini{font-size:12px}
   .toolbar .font-label{font-size:0}
@@ -298,6 +309,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   try { state = {...defaults,...JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}; }
   catch { state = {...defaults}; }
   state.direction = "vertical";
+  state.fontSize = Math.max(16,Math.min(52,Number(state.fontSize) || 29));
 
   const $ = id => document.getElementById(id);
   const body = document.body;
@@ -336,6 +348,20 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     if (!term) return safe;
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return safe.replace(new RegExp(escaped, "gi"), match => `<mark>${match}</mark>`);
+  }
+
+  function renderInline(value, term, useVowLabels=false) {
+    if (!useVowLabels) return highlight(value, term);
+
+    const vowPattern = /([一二三四五六七八九十]+、[^。；！？]{1,18}?願)/g;
+    const fullVowPattern = /^[一二三四五六七八九十]+、[^。；！？]{1,18}?願$/;
+
+    return String(value).split(vowPattern).map(part => {
+      const rendered = highlight(part, term);
+      return fullVowPattern.test(part)
+        ? `<span class="vow-label">${rendered}</span>`
+        : rendered;
+    }).join("");
   }
 
   function chapterText(chapter) {
@@ -385,7 +411,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
           `<span>${highlight(line,highlightTerm)}</span>`
         ).join("")}</div>`;
       } else {
-        output += `<p>${highlight(block.text,highlightTerm)}</p>`;
+        output += `<p>${renderInline(block.text,highlightTerm,state.chapter === 5)}</p>`;
       }
     }
     content.innerHTML = output;
@@ -439,46 +465,20 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
   function scrollToChapterStart() {
-    const heading = content.querySelector(".chapter-heading");
-    viewport.scrollTop = 0;
-
-    if (heading) {
-      heading.scrollIntoView({
-        behavior: "auto",
-        block: "start",
-        inline: "start"
-      });
-    } else {
-      viewport.scrollLeft = 0;
-    }
-
-    // Repeat after layout and webfont loading, because vertical text width can change.
-    requestAnimationFrame(() => {
+    const resetToRightEdge = () => {
       viewport.scrollTop = 0;
-      if (heading) {
-        heading.scrollIntoView({
-          behavior: "auto",
-          block: "start",
-          inline: "start"
-        });
-      }
+      // The viewport is direction:rtl; scrollLeft 0 is the visual right edge.
+      viewport.scrollLeft = 0;
       state.positions[state.chapter] = 0;
       updateProgress();
-    });
+    };
+
+    resetToRightEdge();
+    requestAnimationFrame(resetToRightEdge);
+    setTimeout(resetToRightEdge, 60);
 
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
-        viewport.scrollTop = 0;
-        if (heading) {
-          heading.scrollIntoView({
-            behavior: "auto",
-            block: "start",
-            inline: "start"
-          });
-        }
-        state.positions[state.chapter] = 0;
-        updateProgress();
-      });
+      document.fonts.ready.then(resetToRightEdge);
     }
   }
 
@@ -633,6 +633,23 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       setChapter(target,{restore:false});
     }
   });
+
+
+  // Prevent pinch-to-zoom and double-tap zoom while preserving one-finger scrolling.
+  ["gesturestart","gesturechange","gestureend"].forEach(type => {
+    document.addEventListener(type, event => event.preventDefault(), {passive:false});
+  });
+
+  document.addEventListener("touchmove", event => {
+    if (event.touches && event.touches.length > 1) event.preventDefault();
+  }, {passive:false});
+
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", event => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) event.preventDefault();
+    lastTouchEnd = now;
+  }, {passive:false});
 
   applySettings();
   renderTOC();
