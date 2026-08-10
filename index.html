@@ -96,6 +96,11 @@ html.font-ready .reader-content{visibility:visible}
   direction:rtl;
   scrollbar-color:var(--accent) transparent;
 }
+.reader-viewport.reader-mouse-dragging{
+  cursor:grabbing;
+  user-select:none;
+  -webkit-user-select:none;
+}
 .reader-content{
   min-height:100%;font-family:var(--sutra-font);font-size:var(--font-size);line-height:var(--line-height);
   letter-spacing:var(--reader-letter-spacing);text-align:start;text-justify:auto;
@@ -858,7 +863,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     </section>
 
     <section class="drawer-section note">
-      PDF雲端校訂版 V37。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
+      PDF雲端校訂版 V38。本檔依《佛說大乘無量壽莊嚴清淨平等覺經【漢語拼音】》逐字整理，收錄經前儀軌、四十八品經文、往生咒、讚佛偈、三皈依及末後迴向偈。PDF原有拼音之處沿用原版字音；原版未標拼音之儀軌不另行增補。
     </section>
   </aside>
 </div>
@@ -962,6 +967,66 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       return lookup;
     },{})
   );
+
+  // 校对值必须以标准 Unicode 拼音为唯一显示来源。PDF 私有 SVG 字形只可
+  // 用来反查旧资料，不能再参与把已校正的声调重新映射成另一种字形。
+  const PINYIN_TONE_MARKS = Object.freeze({
+    a:["ā","á","ǎ","à"],
+    e:["ē","é","ě","è"],
+    i:["ī","í","ǐ","ì"],
+    o:["ō","ó","ǒ","ò"],
+    u:["ū","ú","ǔ","ù"],
+    ü:["ǖ","ǘ","ǚ","ǜ"]
+  });
+
+  function canonicalPinyinSyllable(raw) {
+    let value = String(raw || "").trim().toLowerCase().normalize("NFC").replace(/u:|v/g,"ü");
+    const match = value.match(/^([a-zü]+)([1-5])$/i);
+    if (!match) return value;
+    value = match[1];
+    const tone = Number(match[2]);
+    if (tone === 5) return value;
+    let index = value.indexOf("a");
+    if (index < 0) index = value.indexOf("e");
+    if (index < 0 && value.includes("ou")) index = value.indexOf("o");
+    if (index < 0) {
+      for (let i=value.length-1;i>=0;i--) {
+        if ("aeiouü".includes(value[i])) { index=i; break; }
+      }
+    }
+    if (index < 0) return value;
+    return value.slice(0,index) + PINYIN_TONE_MARKS[value[index]][tone-1] + value.slice(index+1);
+  }
+
+  function canonicalPinyin(value) {
+    return String(value || "").trim().split(/\s+/).filter(Boolean)
+      .map(canonicalPinyinSyllable).join(" ").normalize("NFC");
+  }
+
+  function pinyinTextForGlyph(pg="") {
+    if (!pg) return "";
+    const code = pg.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
+    return canonicalPinyin(PDF_PINYIN_TEXT_MAP[code] || "");
+  }
+
+  function verifyPinyinToneMappings() {
+    const checks = {
+      a1:"ā",a2:"á",a3:"ǎ",a4:"à",
+      e1:"ē",e2:"é",e3:"ě",e4:"è",
+      i1:"ī",i2:"í",i3:"ǐ",i4:"ì",
+      o1:"ō",o2:"ó",o3:"ǒ",o4:"ò",
+      u1:"ū",u2:"ú",u3:"ǔ",u4:"ù",
+      'ü1':"ǖ",'ü2':"ǘ",'ü3':"ǚ",'ü4':"ǜ",
+      ju1:"jū",zhu4:"zhù"
+    };
+    for (const [input,expected] of Object.entries(checks)) {
+      if (canonicalPinyin(input) !== expected) {
+        throw new Error(`拼音声调映射校验失败：${input}`);
+      }
+    }
+  }
+  verifyPinyinToneMappings();
+
   function proofReadStorage(key) {
     try {
       const value = JSON.parse(localStorage.getItem(key) || "{}");
@@ -1316,7 +1381,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       target.push({
         ch:value[index],
         pg:token,
-        pt:plainPinyin[index] || "",
+        pt:canonicalPinyin(plainPinyin[index] || ""),
         proofKey,
         highlighted:!!highlight[index],
         vow:!!vow[index],
@@ -1352,7 +1417,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
   function pinyinGlyphMetricsForText(value) {
-    const key = String(value || "").trim().toLowerCase().normalize("NFC");
+    const key = canonicalPinyin(value);
     const code = PDF_PINYIN_GLYPH_BY_TEXT[key];
     if (!code) return null;
     return pinyinGlyphMetrics(String.fromCodePoint(parseInt(code,16)));
@@ -1372,23 +1437,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     ].filter(Boolean).join(" ");
     const glyph = glyphHTML(entry.ch,"",false);
     const trailing = hangingPunctuationHTML(entry.trailingPunct || "");
-    const override = entry.proofKey ? String(proofOverrides[entry.proofKey] || "") : "";
-    const effectiveText = override || entry.pt || "";
-    const correctedMetrics = override && isCJKChar(entry.ch)
-      ? pinyinGlyphMetricsForText(override)
-      : null;
-    const originalMetrics = !override && !entry.pt && entry.pg && isCJKChar(entry.ch)
-      ? pinyinGlyphMetrics(entry.pg)
-      : null;
+    const override = entry.proofKey ? canonicalPinyin(proofOverrides[entry.proofKey] || "") : "";
+    const effectiveText = canonicalPinyin(override || entry.pt || pinyinTextForGlyph(entry.pg));
     let label = "";
     if (isCJKChar(entry.ch)) {
-      if (correctedMetrics) {
-        label = `<span class="py-label" data-pinyin-render="corrected-svg">${pinyinSvgHTML(correctedMetrics,"py-corrected-svg")}</span>`;
-      } else if (effectiveText) {
-        const fallbackClass = override ? " py-corrected-fallback" : "";
-        label = `<span class="py-label"><span class="py-text${fallbackClass}">${escapeHTML(effectiveText)}</span></span>`;
-      } else if (originalMetrics) {
-        label = `<span class="py-label" data-pinyin-render="original-svg">${pinyinSvgHTML(originalMetrics)}</span>`;
+      // 直接显示规范化的文本，避免 SVG 私有字形把 ū/ù 等声调替换为其它调号。
+      if (effectiveText) {
+        const textClass = override ? " py-corrected-fallback" : "";
+        label = `<span class="py-label" data-pinyin-render="canonical-text"><span class="py-text${textClass}">${escapeHTML(effectiveText)}</span></span>`;
       }
     }
     const proofAttr = entry.proofKey ? ` data-proof-key="${escapeHTML(entry.proofKey)}"` : "";
@@ -1948,6 +2004,79 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     readerSwipe = null;
   },{passive:true});
 
+  // 桌面端沿用同一套边界换品规则；拖拽过程本身只横向移动经文，不显示提示。
+  const MOUSE_DRAG_START_DISTANCE = 6;
+  let readerMouseDrag = null;
+
+  function clearReaderMouseDrag() {
+    readerMouseDrag = null;
+    viewport.classList.remove("reader-mouse-dragging");
+  }
+
+  function finishReaderMouseDrag(event, cancelled=false) {
+    const drag = readerMouseDrag;
+    if (!drag || (event.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
+    const endX = Number.isFinite(event.clientX) ? event.clientX : drag.lastX;
+    const endY = Number.isFinite(event.clientY) ? event.clientY : drag.lastY;
+    const dx = endX - drag.startX;
+    const dy = endY - drag.startY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    const elapsed = Math.max(1,performance.now() - drag.startedAt);
+    const velocity = absX / elapsed;
+    const horizontal = absX > absY * 1.25;
+    const strong = absX >= SWIPE_NAV_MIN_DISTANCE
+      || (absX >= SWIPE_NAV_FAST_DISTANCE && velocity >= SWIPE_NAV_MIN_VELOCITY);
+    const startProgress = drag.startProgress;
+    if (viewport.hasPointerCapture?.(drag.pointerId)) viewport.releasePointerCapture(drag.pointerId);
+    clearReaderMouseDrag();
+
+    if (cancelled || readerSwipeLocked || !drag.moved || !horizontal || !strong || readerOverlayVisible()) return;
+    if (dx > 0 && isChapterEndEdge(startProgress)) {
+      swipeToNextChapter();
+    } else if (dx < 0 && isChapterStartEdge(startProgress)) {
+      swipeToPreviousChapter();
+    }
+  }
+
+  viewport.addEventListener("pointerdown",event => {
+    if (event.pointerType !== "mouse" || event.button !== 0 || readerOverlayVisible()
+        || readerSwipeBlockedTarget(event.target)) return;
+    readerMouseDrag = {
+      pointerId:event.pointerId,
+      startX:event.clientX,
+      startY:event.clientY,
+      lastX:event.clientX,
+      lastY:event.clientY,
+      startScrollLeft:viewport.scrollLeft,
+      startProgress:getReadingProgress(),
+      startedAt:performance.now(),
+      moved:false
+    };
+    viewport.setPointerCapture?.(event.pointerId);
+  });
+
+  viewport.addEventListener("pointermove",event => {
+    const drag = readerMouseDrag;
+    if (!drag || event.pointerType !== "mouse" || event.pointerId !== drag.pointerId) return;
+    drag.lastX = event.clientX;
+    drag.lastY = event.clientY;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.moved && Math.abs(dx) < MOUSE_DRAG_START_DISTANCE && Math.abs(dy) < MOUSE_DRAG_START_DISTANCE) return;
+    if (Math.abs(dx) <= Math.abs(dy) * 1.25) return;
+    drag.moved = true;
+    viewport.classList.add("reader-mouse-dragging");
+    event.preventDefault();
+    viewport.scrollLeft = drag.startScrollLeft + dx;
+  },{passive:false});
+
+  viewport.addEventListener("pointerup",event => finishReaderMouseDrag(event));
+  viewport.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
+  viewport.addEventListener("lostpointercapture",event => {
+    if (readerMouseDrag?.pointerId === event.pointerId) clearReaderMouseDrag();
+  });
+
   $("searchBtn").addEventListener("click",openSearch);
   $("closeSearch").addEventListener("click",closeSearch);
   searchInput.addEventListener("input",event=>runSearch(event.target.value));
@@ -2193,10 +2322,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
   function proofBasePinyin(pg="", pt="") {
-    if (pt) return pt;
-    if (!pg) return "";
-    const code = pg.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
-    return PDF_PINYIN_TEXT_MAP[code] || "";
+    return canonicalPinyin(pt || pinyinTextForGlyph(pg));
   }
 
   function proofKeyTitle(chapterIndex, charIndex) {
@@ -2271,43 +2397,13 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
   function proofPinyinVisual(item) {
-    const override = String(proofOverrides[item.key] || "");
-    if (override) {
-      const correctedMetrics = pinyinGlyphMetricsForText(override);
-      if (correctedMetrics) {
-        return `<svg class="proof-current-svg" aria-label="校正拼音图形" viewBox="0 0 ${correctedMetrics.width} ${correctedMetrics.height}" preserveAspectRatio="xMinYMid meet"><use href="#pg-${correctedMetrics.code}" width="${correctedMetrics.width}" height="${correctedMetrics.height}"></use></svg>`;
-      }
-      return `<span class="proof-current-text">${escapeHTML(override)}</span>`;
-    }
-    if (item.pg) {
-      const metrics = pinyinGlyphMetrics(item.pg);
-      return `<svg class="proof-current-svg" aria-label="原拼音图形" viewBox="0 0 ${metrics.width} ${metrics.height}" preserveAspectRatio="xMinYMid meet"><use href="#pg-${metrics.code}" width="${metrics.width}" height="${metrics.height}"></use></svg>`;
-    }
-    if (item.base) return `<span class="proof-current-text">${escapeHTML(item.base)}</span>`;
+    const displayed = canonicalPinyin(proofOverrides[item.key] || item.base || pinyinTextForGlyph(item.pg));
+    if (displayed) return `<span class="proof-current-text">${escapeHTML(displayed)}</span>`;
     return `<span>—</span>`;
   }
 
   function toneMarkSyllable(raw) {
-    let value = String(raw || "").trim().toLowerCase().replace(/u:|v/g,"ü");
-    const match = value.match(/^([a-zü]+)([1-5])$/i);
-    if (!match) return value;
-    value = match[1];
-    const tone = Number(match[2]);
-    if (tone === 5) return value;
-    const marks = {
-      a:["ā","á","ǎ","à"],e:["ē","é","ě","è"],i:["ī","í","ǐ","ì"],
-      o:["ō","ó","ǒ","ò"],u:["ū","ú","ǔ","ù"],ü:["ǖ","ǘ","ǚ","ǜ"]
-    };
-    let index = value.indexOf("a");
-    if (index < 0) index = value.indexOf("e");
-    if (index < 0 && value.includes("ou")) index = value.indexOf("o");
-    if (index < 0) {
-      for (let i=value.length-1;i>=0;i--) {
-        if ("aeiouü".includes(value[i])) { index=i; break; }
-      }
-    }
-    if (index < 0) return value;
-    return value.slice(0,index) + marks[value[index]][tone-1] + value.slice(index+1);
+    return canonicalPinyin(raw);
   }
 
   let proofLastResults = [];
