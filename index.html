@@ -1608,6 +1608,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   }
 
   function renderChapter({restore=true,highlightTerm=""}={}) {
+    resetWheelProgress();
     const chapter = chapters[state.chapter];
     $("chapterMini").textContent = chapter.title;
     document.title = `${chapter.title}｜佛說大乘無量壽莊嚴清淨平等覺經`;
@@ -1897,6 +1898,16 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   const SWIPE_NAV_EDGE_PROGRESS = .985;
   let readerSwipe = null;
   let readerSwipeLocked = false;
+  // 滚轮的目标进度独立于浏览器 RTL scrollLeft 回报，避免个别品目在边界抖动。
+  let wheelProgress = null;
+  let wheelProgressChapter = -1;
+  let wheelEdge = null;
+
+  function resetWheelProgress() {
+    wheelProgress = null;
+    wheelProgressChapter = -1;
+    wheelEdge = null;
+  }
 
   function readerOverlayVisible() {
     return drawerMask.classList.contains("show")
@@ -2043,6 +2054,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   viewport.addEventListener("pointerdown",event => {
     if (event.pointerType !== "mouse" || event.button !== 0 || readerOverlayVisible()
         || readerSwipeBlockedTarget(event.target)) return;
+    resetWheelProgress();
     readerMouseDrag = {
       pointerId:event.pointerId,
       startX:event.clientX,
@@ -2078,7 +2090,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   window.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
   window.addEventListener("blur",() => clearReaderMouseDrag());
 
-  // 桌面鼠标滚轮：以阅读进度推进，不依赖各浏览器不同的 RTL scrollLeft 符号规则。
+  // 桌面鼠标滚轮：记录本次滚动的目标进度，避免 RTL scrollLeft 在少数页面边界回报不稳定。
   viewport.addEventListener("wheel",event => {
     if (readerOverlayVisible() || event.ctrlKey || event.metaKey) return;
     const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
@@ -2087,25 +2099,45 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
 
     const forward = delta > 0;
     const max = maxScroll();
-    const progress = getReadingProgress();
-    const edgeTolerance = max ? Math.min(.012, 10 / max) : 0;
-    const atEnd = !max || progress >= 1 - edgeTolerance;
-    const atStart = !max || progress <= edgeTolerance;
+    if (wheelProgressChapter !== state.chapter || wheelProgress === null) {
+      wheelProgress = getReadingProgress();
+      wheelProgressChapter = state.chapter;
+      wheelEdge = null;
+    }
 
-    // 已到边界仍继续滚动：只触发一次，交由既有锁避免惯性滚轮连续翻品。
-    if (forward && atEnd) {
+    // 方向反转时，重新以当前视觉位置为准。
+    if ((forward && wheelEdge === "start") || (!forward && wheelEdge === "end")) {
+      wheelProgress = getReadingProgress();
+      wheelEdge = null;
+    }
+
+    // 已经由上一次滚动抵达边界：同方向的下一滚必换品。
+    if (forward && wheelEdge === "end") {
       swipeToNextChapter();
       return;
     }
-    if (!forward && atStart) {
+    if (!forward && wheelEdge === "start") {
       swipeToPreviousChapter();
       return;
     }
 
+    if (!max) {
+      if (forward) swipeToNextChapter();
+      else swipeToPreviousChapter();
+      return;
+    }
+
     const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? viewport.clientWidth : 1;
-    const step = Math.min(.28, Math.abs(delta * unit) / Math.max(1,max));
-    setReadingProgress(progress + (forward ? step : -step));
+    const step = Math.min(.28, Math.abs(delta * unit) / max);
+    const target = Math.max(0,Math.min(1,wheelProgress + (forward ? step : -step)));
+    wheelProgress = target;
+    setReadingProgress(target);
     updateProgress();
+
+    // 达到边界时先停在边界；继续同方向滚动才换品。
+    if (target >= .999) wheelEdge = "end";
+    else if (target <= .001) wheelEdge = "start";
+    else wheelEdge = null;
   },{passive:false});
 
   $("searchBtn").addEventListener("click",openSearch);
