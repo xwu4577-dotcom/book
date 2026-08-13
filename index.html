@@ -2078,12 +2078,28 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   window.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
   window.addEventListener("blur",() => clearReaderMouseDrag());
 
-  // 桌面鼠标滚轮：将上下滚动转换为纵排经文的横向翻阅；触控板横向滚动优先保留原方向。
+  // 桌面鼠标滚轮：将上下滚动转换为纵排经文的横向翻阅；到品首/末继续滚动时换品。
   viewport.addEventListener("wheel",event => {
     if (readerOverlayVisible() || event.ctrlKey || event.metaKey) return;
     const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
     if (!delta) return;
     event.preventDefault();
+
+    const forward = delta > 0;
+    const progress = getReadingProgress();
+    const atEnd = isChapterEndEdge(progress);
+    const atStart = isChapterStartEdge(progress);
+
+    // 已到边界仍继续滚动：只触发一次，交由既有锁避免惯性滚轮连续翻品。
+    if (forward && atEnd) {
+      swipeToNextChapter();
+      return;
+    }
+    if (!forward && atStart) {
+      swipeToPreviousChapter();
+      return;
+    }
+
     const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? viewport.clientWidth : 1;
     // direction:rtl 下反转数值，保持滚轮向下＝阅读向前、向上＝阅读向后。
     viewport.scrollLeft -= delta * unit;
