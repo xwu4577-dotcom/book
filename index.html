@@ -1898,12 +1898,19 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   const SWIPE_NAV_EDGE_PROGRESS = .985;
   let readerSwipe = null;
   let readerSwipeLocked = false;
-  // 滚轮的目标进度独立于浏览器 RTL scrollLeft 回报，避免个别品目在边界抖动。
+  // 滚轮目标与当前显示进度分离：用动画帧平滑追赶目标，且不依赖 RTL scrollLeft 回报。
   let wheelProgress = null;
   let wheelProgressChapter = -1;
   let wheelEdge = null;
+  let wheelAnimationFrame = 0;
+
+  function stopWheelAnimation() {
+    if (wheelAnimationFrame) cancelAnimationFrame(wheelAnimationFrame);
+    wheelAnimationFrame = 0;
+  }
 
   function resetWheelProgress() {
+    stopWheelAnimation();
     wheelProgress = null;
     wheelProgressChapter = -1;
     wheelEdge = null;
@@ -2090,7 +2097,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   window.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
   window.addEventListener("blur",() => clearReaderMouseDrag());
 
-  // 桌面鼠标滚轮：记录本次滚动的目标进度，避免 RTL scrollLeft 在少数页面边界回报不稳定。
+  // 桌面鼠标滚轮：将输入累积为目标进度，以动画帧连续推进，观感如拖动页面。
   viewport.addEventListener("wheel",event => {
     if (readerOverlayVisible() || event.ctrlKey || event.metaKey) return;
     const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
@@ -2105,39 +2112,56 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       wheelEdge = null;
     }
 
-    // 方向反转时，重新以当前视觉位置为准。
+    // 方向反转时，以目前的显示位置为新的平滑起点。
     if ((forward && wheelEdge === "start") || (!forward && wheelEdge === "end")) {
       wheelProgress = getReadingProgress();
       wheelEdge = null;
     }
 
-    // 已经由上一次滚动抵达边界：同方向的下一滚必换品。
+    // 已抵达边界后，继续同方向滚轮才换品。
     if (forward && wheelEdge === "end") {
+      resetWheelProgress();
       swipeToNextChapter();
       return;
     }
     if (!forward && wheelEdge === "start") {
+      resetWheelProgress();
       swipeToPreviousChapter();
       return;
     }
 
     if (!max) {
+      resetWheelProgress();
       if (forward) swipeToNextChapter();
       else swipeToPreviousChapter();
       return;
     }
 
     const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? viewport.clientWidth : 1;
-    const step = Math.min(.28, Math.abs(delta * unit) / max);
-    const target = Math.max(0,Math.min(1,wheelProgress + (forward ? step : -step)));
-    wheelProgress = target;
-    setReadingProgress(target);
-    updateProgress();
+    const step = Math.min(.18, Math.abs(delta * unit) / max);
+    wheelProgress = Math.max(0,Math.min(1,wheelProgress + (forward ? step : -step)));
 
-    // 达到边界时先停在边界；继续同方向滚动才换品。
-    if (target >= .999) wheelEdge = "end";
-    else if (target <= .001) wheelEdge = "start";
+    if (wheelProgress >= .999) wheelEdge = "end";
+    else if (wheelProgress <= .001) wheelEdge = "start";
     else wheelEdge = null;
+
+    if (wheelAnimationFrame) return;
+    const animateWheel = () => {
+      wheelAnimationFrame = 0;
+      if (wheelProgressChapter !== state.chapter || wheelProgress === null) return;
+      const current = getReadingProgress();
+      const distance = wheelProgress - current;
+      if (Math.abs(distance) < .0008) {
+        setReadingProgress(wheelProgress);
+        updateProgress();
+        return;
+      }
+      // 逐帧向目标靠近，连续且可被新的滚轮输入即时调整。
+      setReadingProgress(current + distance * .32);
+      updateProgress();
+      wheelAnimationFrame = requestAnimationFrame(animateWheel);
+    };
+    wheelAnimationFrame = requestAnimationFrame(animateWheel);
   },{passive:false});
 
   $("searchBtn").addEventListener("click",openSearch);
