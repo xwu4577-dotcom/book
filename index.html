@@ -2097,7 +2097,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   window.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
   window.addEventListener("blur",() => clearReaderMouseDrag());
 
-  // 桌面鼠标滚轮：将输入累积为目标进度，以动画帧连续推进，观感如拖动页面。
+  // 桌面鼠标滚轮：将每个刻度压成小而连续的位移，再以固定速度平滑推进。
   viewport.addEventListener("wheel",event => {
     if (readerOverlayVisible() || event.ctrlKey || event.metaKey) return;
     const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
@@ -2112,13 +2112,11 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       wheelEdge = null;
     }
 
-    // 方向反转时，以目前的显示位置为新的平滑起点。
     if ((forward && wheelEdge === "start") || (!forward && wheelEdge === "end")) {
       wheelProgress = getReadingProgress();
       wheelEdge = null;
     }
 
-    // 已抵达边界后，继续同方向滚轮才换品。
     if (forward && wheelEdge === "end") {
       resetWheelProgress();
       swipeToNextChapter();
@@ -2129,7 +2127,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       swipeToPreviousChapter();
       return;
     }
-
     if (!max) {
       resetWheelProgress();
       if (forward) swipeToNextChapter();
@@ -2137,8 +2134,12 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       return;
     }
 
-    const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? viewport.clientWidth : 1;
-    const step = Math.min(.18, Math.abs(delta * unit) / max);
+    // 传统鼠标的一个刻度通常是 100~120；统一压缩为约 14px，避免“一格跳很远”。
+    const rawPixels = event.deltaMode === 1 ? Math.abs(delta) * 16
+      : event.deltaMode === 2 ? viewport.clientWidth
+      : Math.abs(delta);
+    const pixels = Math.min(28, Math.max(6, rawPixels * .12));
+    const step = pixels / max;
     wheelProgress = Math.max(0,Math.min(1,wheelProgress + (forward ? step : -step)));
 
     if (wheelProgress >= .999) wheelEdge = "end";
@@ -2151,13 +2152,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       if (wheelProgressChapter !== state.chapter || wheelProgress === null) return;
       const current = getReadingProgress();
       const distance = wheelProgress - current;
-      if (Math.abs(distance) < .0008) {
+      if (Math.abs(distance) < .00025) {
         setReadingProgress(wheelProgress);
         updateProgress();
         return;
       }
-      // 逐帧向目标靠近，连续且可被新的滚轮输入即时调整。
-      setReadingProgress(current + distance * .32);
+      // 每帧最多推进 5px，形成接近按住拖动的缓慢连续感。
+      const pace = Math.min(Math.abs(distance), 5 / Math.max(1,max));
+      setReadingProgress(current + Math.sign(distance) * pace);
       updateProgress();
       wheelAnimationFrame = requestAnimationFrame(animateWheel);
     };
