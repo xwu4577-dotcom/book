@@ -2004,8 +2004,9 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     readerSwipe = null;
   },{passive:true});
 
-  // 桌面端沿用同一套边界换品规则；拖拽过程本身只横向移动经文，不显示提示。
-  const MOUSE_DRAG_START_DISTANCE = 6;
+  // 桌面端：左键按住正文后可像拖动纸张一样横向移动。
+  // 使用窗口级监听，避免指针越过正文边缘时丢失事件；保留移动端既有的边界强滑换品。
+  const MOUSE_DRAG_START_DISTANCE = 4;
   let readerMouseDrag = null;
 
   function clearReaderMouseDrag() {
@@ -2024,14 +2025,14 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     const absY = Math.abs(dy);
     const elapsed = Math.max(1,performance.now() - drag.startedAt);
     const velocity = absX / elapsed;
-    const horizontal = absX > absY * 1.25;
+    const horizontal = absX > absY * 1.15;
     const strong = absX >= SWIPE_NAV_MIN_DISTANCE
       || (absX >= SWIPE_NAV_FAST_DISTANCE && velocity >= SWIPE_NAV_MIN_VELOCITY);
     const startProgress = drag.startProgress;
-    if (viewport.hasPointerCapture?.(drag.pointerId)) viewport.releasePointerCapture(drag.pointerId);
     clearReaderMouseDrag();
 
-    if (cancelled || readerSwipeLocked || !drag.moved || !horizontal || !strong || readerOverlayVisible()) return;
+    if (cancelled || readerSwipeLocked || !drag.dragging || !horizontal || !strong || readerOverlayVisible()) return;
+    // 与“抓住页面”保持同向：拖向右时，经文随之向右，且仅在品末换到下一品。
     if (dx > 0 && isChapterEndEdge(startProgress)) {
       swipeToNextChapter();
     } else if (dx < 0 && isChapterStartEdge(startProgress)) {
@@ -2051,31 +2052,31 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
       startScrollLeft:viewport.scrollLeft,
       startProgress:getReadingProgress(),
       startedAt:performance.now(),
-      moved:false
+      dragging:false
     };
-    viewport.setPointerCapture?.(event.pointerId);
   });
 
-  viewport.addEventListener("pointermove",event => {
+  window.addEventListener("pointermove",event => {
     const drag = readerMouseDrag;
     if (!drag || event.pointerType !== "mouse" || event.pointerId !== drag.pointerId) return;
     drag.lastX = event.clientX;
     drag.lastY = event.clientY;
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    if (!drag.moved && Math.abs(dx) < MOUSE_DRAG_START_DISTANCE && Math.abs(dy) < MOUSE_DRAG_START_DISTANCE) return;
-    if (Math.abs(dx) <= Math.abs(dy) * 1.25) return;
-    drag.moved = true;
-    viewport.classList.add("reader-mouse-dragging");
+    if (!drag.dragging) {
+      if (Math.abs(dx) < MOUSE_DRAG_START_DISTANCE && Math.abs(dy) < MOUSE_DRAG_START_DISTANCE) return;
+      if (Math.abs(dx) <= Math.abs(dy) * 1.15) return;
+      drag.dragging = true;
+      viewport.classList.add("reader-mouse-dragging");
+    }
     event.preventDefault();
-    viewport.scrollLeft = drag.startScrollLeft + dx;
+    // direction:rtl 下 scrollLeft 的正向与视觉相反；减去 dx 才是“页面跟手”。
+    viewport.scrollLeft = drag.startScrollLeft - dx;
   },{passive:false});
 
-  viewport.addEventListener("pointerup",event => finishReaderMouseDrag(event));
-  viewport.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
-  viewport.addEventListener("lostpointercapture",event => {
-    if (readerMouseDrag?.pointerId === event.pointerId) clearReaderMouseDrag();
-  });
+  window.addEventListener("pointerup",event => finishReaderMouseDrag(event));
+  window.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
+  window.addEventListener("blur",() => clearReaderMouseDrag());
 
   $("searchBtn").addEventListener("click",openSearch);
   $("closeSearch").addEventListener("click",closeSearch);
