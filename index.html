@@ -2078,7 +2078,7 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
   window.addEventListener("pointercancel",event => finishReaderMouseDrag(event,true));
   window.addEventListener("blur",() => clearReaderMouseDrag());
 
-  // 桌面鼠标滚轮：将上下滚动转换为纵排经文的横向翻阅；到品首/末继续滚动时换品。
+  // 桌面鼠标滚轮：以阅读进度推进，不依赖各浏览器不同的 RTL scrollLeft 符号规则。
   viewport.addEventListener("wheel",event => {
     if (readerOverlayVisible() || event.ctrlKey || event.metaKey) return;
     const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
@@ -2086,9 +2086,11 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     event.preventDefault();
 
     const forward = delta > 0;
+    const max = maxScroll();
     const progress = getReadingProgress();
-    const atEnd = isChapterEndEdge(progress);
-    const atStart = isChapterStartEdge(progress);
+    const edgeTolerance = max ? Math.min(.012, 10 / max) : 0;
+    const atEnd = !max || progress >= 1 - edgeTolerance;
+    const atStart = !max || progress <= edgeTolerance;
 
     // 已到边界仍继续滚动：只触发一次，交由既有锁避免惯性滚轮连续翻品。
     if (forward && atEnd) {
@@ -2101,8 +2103,9 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
     }
 
     const unit = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? viewport.clientWidth : 1;
-    // direction:rtl 下反转数值，保持滚轮向下＝阅读向前、向上＝阅读向后。
-    viewport.scrollLeft -= delta * unit;
+    const step = Math.min(.28, Math.abs(delta * unit) / Math.max(1,max));
+    setReadingProgress(progress + (forward ? step : -step));
+    updateProgress();
   },{passive:false});
 
   $("searchBtn").addEventListener("click",openSearch);
