@@ -1536,7 +1536,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
           if (lineIndex < block.lines.length - 1) blankPinyinEntries(bodyEntries, 1);
         });
       } else {
-        blankPinyinEntries(bodyEntries, 2);
         appendPinyinEntries(
           bodyEntries,
           block.text,
@@ -1548,7 +1547,6 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
             proofPrefix:`c${state.chapter}:b${blockIndex}:p:`
           }
         );
-        if (blockIndex < chapter.blocks.length - 1) blankPinyinEntries(bodyEntries, 1);
       }
     });
 
@@ -1591,11 +1589,9 @@ mark{background:rgba(214,174,79,.42);color:inherit;border-radius:.14em;padding:0
           if (lineIndex < block.lines.length - 1) blankPinyinEntries(bodyEntries, 1);
         });
       } else {
-        blankPinyinEntries(bodyEntries, 2);
         appendPinyinEntries(bodyEntries, block.text, "", highlightTerm, {
           vowLabels:chapter.sutraNo === 6
         });
-        if (blockIndex < chapter.blocks.length - 1) blankPinyinEntries(bodyEntries, 1);
       }
     });
 
